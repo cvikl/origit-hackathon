@@ -1,5 +1,10 @@
 # Origit — versioning for agents
 
+> **IBM Bob 2.0 Hackathon submission (lablab.ai, 25–27 September 2026).**
+> Live console: **https://origit.uk** · Demo repository on the console: [acme-payments/payments-api](https://origit.uk/acme-payments/payments-api) · Video: [`video/`](video/) · Slides and statements: [`docs/`](docs/) · Bob IDE task evidence: [`bob_sessions/`](bob_sessions/) · Technical documentation: [`docs/TECHNICAL.md`](docs/TECHNICAL.md) ([PDF](docs/TECHNICAL.pdf))
+>
+> This repository holds everything: the open-source core (`origit/`), the hosted console (`console/`), the Bob IDE extension (`extensions/`), a snapshot of the instrumented demo repository with the exported records (`demo/`), the docs and the Bob session evidence. The core alone is also published at https://github.com/cvikl/origit.
+
 **Origit is an open-source agent provenance layer for git.** Git records *what* changed and *who* committed it.
 Origit attaches a hashed record to every agent commit saying *what the agent read, wrote, added and ran* — and makes it queryable.
 
@@ -150,10 +155,11 @@ Architecture, record schema, session manager, taint and pre-filter algorithms, B
 ## Repository layout
 
 ```
+video/       demo video link (submitted through the form)
 origit/      CLI + core (Python 3.11+, click only)
-console/     pointer to the hosted console (separate repo origit-console, https://origit.uk)
+console/     Origit Console: FastAPI web console with agent provenance, Bob Review on push, Article 14 draft (live at https://origit.uk)
 extensions/  origit-vscode: "Origit for Bob IDE" (ORIGIT view in Source Control, Origit: Taint…, status bar), packaged .vsix
-demo/        payments-api (git submodule → origit-demo-payments-api: the fintech's repo Bob works in) + evidence pack
+demo/        payments-api (snapshot of the fintech's repo Bob works in, with its .bob/ config) + evidence pack (records, taint, log)
 docs/        statements, ASI mapping, CRA note, demo script, roadmap, STATUS.md
 bob_sessions/  PNG screenshots of Bob IDE task session summaries (all team members)
 slides/      final deck
@@ -167,7 +173,7 @@ cd /path/to/your/repo && origit init --session-base 1   # Bob hooks, modes, MCP 
 # work in Bob IDE: every run is committed and recorded when Bob stops
 origit log            # sessions → runs → records
 origit taint fast-pay-utils
-# demo: git submodule update --init && cd demo/payments-api && origit taint fast-pay-utils
+# demo evidence without the live repo: demo/evidence/taint.txt · live history: https://origit.uk/acme-payments/payments-api
 ```
 
 ## Positioning

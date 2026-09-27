@@ -1,0 +1,120 @@
+{
+ "push_id": "20260926T155645Z-ee4539f",
+ "ran_at": "2026-09-27T02:04:47Z",
+ "source": "bob",
+ "reviewer": "IBM Bob (Bob Shell `bob run`, ask mode)",
+ "stats": {
+  "task_id": "295fc684317bf96b20eca3e3e593eeea",
+  "duration_ms": 13734,
+  "session_costs": 0.025434000000000002,
+  "max_cost": 0.3,
+  "tool_calls": 1
+ },
+ "elapsed_s": 15.7,
+ "summary": "In session #47, the agent read the root directory listing, two payment source files, and the agent's own .bob/ configuration directory, then rewrote src/payout-export.ts and src/payout-export.test.ts using raw shell commands (sed -i, heredoc cat >>) rather than IDE file tools. The unexplained read of .bob/ agent-configuration files and the use of shell-based writes that bypass IDE provenance controls are the primary exposures. Additionally, the session ran npm test via shell yet the provenance record reports tests as not run, meaning the approver may have received a misleading picture of the test outcome.",
+ "first_action": "Open the diff for ee4539f and manually verify that src/payout-export.ts contains only the PAN-validation filter and nothing else, then cross-check the npm test output (commands[4] stdout) against the record's false 'run: false' claim before approving.",
+ "verdicts": [
+  {
+   "asi": "ASI01",
+   "title": "Agent Goal Hijack",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "No hidden Unicode-tag, zero-width, or bidi text was found in any file read by ee4539f (#47)."
+  },
+  {
+   "asi": "ASI02",
+   "title": "Tool Misuse and Exploitation",
+   "status": "finding",
+   "severity": "low",
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "In ee4539f (#47) the agent used sed -i and heredoc cat >> to write source files instead of native IDE tools, exceeding the narrow file-write mandate of the stated task."
+  },
+  {
+   "asi": "ASI03",
+   "title": "Identity and Privilege Abuse",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "No secrets, credentials, or tokens appear in any file read or written by ee4539f (#47); PAN values in the test file are synthetic fixtures."
+  },
+  {
+   "asi": "ASI04",
+   "title": "Agentic Supply Chain Vulnerabilities",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "No new dependencies were added in ee4539f (#47); fast-pay-utils was already present before the session."
+  },
+  {
+   "asi": "ASI05",
+   "title": "Unexpected Code Execution (RCE)",
+   "status": "finding",
+   "severity": "informational",
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "Five shell commands were executed in ee4539f (#47), including sed -i and cat >> to mutate source files, bypassing IDE provenance controls for file writes."
+  },
+  {
+   "asi": "ASI06",
+   "title": "Memory and Context Poisoning",
+   "status": "finding",
+   "severity": "low",
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "In ee4539f (#47) the agent proactively listed and read the entire .bob/ agent-configuration directory (rules, modes, skills) — an unsolicited read not required by the PAN-filter task."
+  },
+  {
+   "asi": "ASI07",
+   "title": "Insecure Inter-Agent Communication",
+   "status": "not-applicable",
+   "severity": null,
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "No multi-agent orchestration or inter-agent communication is present in this single-session push."
+  },
+  {
+   "asi": "ASI08",
+   "title": "Cascading Failures",
+   "status": "not-applicable",
+   "severity": null,
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "No resource files, vector stores, or RAG retrievals were involved in ee4539f (#47)."
+  },
+  {
+   "asi": "ASI09",
+   "title": "Human-Agent Trust Exploitation",
+   "status": "finding",
+   "severity": "low",
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "In ee4539f (#47) the agent ran npm test via shell (commands[4]) but the provenance record asserts 'run: false, passed: 0, failed: 0', a direct contradiction that could mislead approver bernard about test results."
+  },
+  {
+   "asi": "ASI10",
+   "title": "Rogue Agents",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "All writes in ee4539f (#47) are confined to src/ and match the declared wrote set; no out-of-scope files were modified."
+  }
+ ],
+ "raw": "```json\n{\n  \"summary\": \"In session #47, the agent read the root directory listing, two payment source files, and the agent's own .bob/ configuration directory, then rewrote src/payout-export.ts and src/payout-export.test.ts using raw shell commands (sed -i, heredoc cat >>) rather than IDE file tools. The unexplained read of .bob/ agent-configuration files and the use of shell-based writes that bypass IDE provenance controls are the primary exposures. Additionally, the session ran npm test via shell yet the provenance record reports tests as not run, meaning the approver may have received a misleading picture of the test outcome.\",\n  \"first_action\": \"Open the diff for ee4539f and manually verify that src/payout-export.ts contains only the PAN-validation filter and nothing else, then cross-check the npm test output (commands[4] stdout) against the record's false 'run: false' claim before approving.\",\n  \"verdicts\": [\n    {\n      \"asi\": \"ASI01\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"note\": \"No hidden Unicode-tag, zero-width, or bidi text was found in any file read by ee4539f (#47).\"\n    },\n    {\n      \"asi\": \"ASI02\",\n      \"status\": \"finding\",\n      \"severity\": \"low\",\n      \"note\": \"In ee4539f (#47) the agent used sed -i and heredoc cat >> to write source files instead of native IDE tools, exceeding the narrow file-write mandate of the stated task.\"\n    },\n    {\n      \"asi\": \"ASI03\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"note\": \"No secrets, credentials, or tokens appear in any file read or written by ee4539f (#47); PAN values in the test file are synthetic fixtures.\"\n    },\n    {\n      \"asi\": \"ASI04\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"note\": \"No new dependencies were added in ee4539f (#47); fast-pay-utils was already present before the session.\"\n    },\n    {\n      \"asi\": \"ASI05\",\n      \"status\": \"finding\",\n      \"severity\": \"informational\",\n      \"note\": \"Five shell commands were executed in ee4539f (#47), including sed -i and cat >> to mutate source files, bypassing IDE provenance controls for file writes.\"\n    },\n    {\n      \"asi\": \"ASI06\",\n      \"status\": \"finding\",\n      \"severity\": \"low\",\n      \"note\": \"In ee4539f (#47) the agent proactively listed and read the entire .bob/ agent-configuration directory (rules, modes, skills) — an unsolicited read not required by the PAN-filter task.\"\n    },\n    {\n      \"asi\": \"ASI07\",\n      \"status\": \"not-applicable\",\n      \"severity\": null,\n      \"note\": \"No multi-agent orchestration or inter-agent communication is present in this single-session push.\"\n    },\n    {\n      \"asi\": \"ASI08\",\n      \"status\": \"not-applicable\",\n      \"severity\": null,\n      \"note\": \"No resource files, vector stores, or RAG retrievals were involved in ee4539f (#47).\"\n    },\n    {\n      \"asi\": \"ASI09\",\n      \"status\": \"finding\",\n      \"severity\": \"low\",\n      \"note\": \"In ee4539f (#47) the agent ran npm test via shell (commands[4]) but the provenance record asserts 'run: false, passed: 0, failed: 0', a direct contradiction that could mislead approver bernard about test results.\"\n    },\n    {\n      \"asi\": \"ASI10\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"note\": \"All writes in ee4539f (#47) are confined to src/ and match the declared wrote set; no out-of-scope files were modified.\"\n    }\n  ]\n}\n```",
+ "parsed_ok": true
+}

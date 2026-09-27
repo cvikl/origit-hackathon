@@ -21,7 +21,7 @@ Triggers (each returns a Finding {asi, severity, cwe, evidence, ref}):
   * secrets/env touched (.env, *.pem, id_rsa, *.key)            -> ASI03 medium, CWE-200
 
 Severity labels are CVSS-style hints for the console; Bob's evidence may raise or lower them.
-Jeremy owns the rule list; keep each rule a small pure function so it is unit-testable.
+The security teammate owns the rule list; keep each rule a small pure function so it is unit-testable.
 """
 
 from __future__ import annotations

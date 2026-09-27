@@ -1,0 +1,109 @@
+{
+ "sha": "d107c67fb7643ff8a668e2c70a74c873886ca8de",
+ "ran_at": "2026-09-27T01:41:59Z",
+ "source": "bob",
+ "reviewer": "IBM Bob (Bob Shell `bob run`, ask mode)",
+ "stats": {
+  "task_id": "0352d901e3fbe88abff898b757a78c05",
+  "duration_ms": 25342,
+  "session_costs": 0.051764000000000004,
+  "max_cost": 0.5,
+  "tool_calls": 6
+ },
+ "elapsed_s": 27.4,
+ "summary": "The agent (actor kind=human, mode=origit-build) made a single-line README.md change substituting a placeholder GitHub org URL with a concrete repository URL 'https://github.com/cvikl/origit'. No files were read by the agent, no commands were executed, no dependencies were added, and the prefilter found no hidden text. The commit exposes no code-level security risk but introduces a hard-coded external URL referencing a third-party GitHub account that is not verified as trusted.",
+ "categories": [
+  {
+   "asi": "ASI01",
+   "title": "Agent Goal Hijack",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "prefilter.json: \"hidden_text\": [] | record.json: \"read\": []",
+   "rationale": "The prefilter found no hidden Unicode-tag or zero-width text, and the agent read no files during the session, so there is no vector for goal hijacking via poisoned content."
+  },
+  {
+   "asi": "ASI02",
+   "title": "Tool Misuse and Exploitation",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json: \"commands\": []",
+   "rationale": "No shell, network, or file-write tools beyond the single README edit were invoked; there is no evidence of tool use outside the stated task."
+  },
+  {
+   "asi": "ASI03",
+   "title": "Identity and Privilege Abuse",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "diff.patch: only line changed is \"+**IBM Bob IDE** and records every agent commit with **Origit** (https://github.com/cvikl/origit).\"",
+   "rationale": "The diff touches only a documentation URL in README.md; no secrets, credentials, .env files, or tokens were read or written."
+  },
+  {
+   "asi": "ASI04",
+   "title": "Agentic Supply Chain Vulnerabilities",
+   "status": "finding",
+   "severity": "low",
+   "cwe": "CWE-829",
+   "evidence": "diff.patch line 10: \"+**IBM Bob IDE** and records every agent commit with **Origit** (https://github.com/cvikl/origit).\" | record.json: \"added_deps\": []",
+   "rationale": "The commit hard-codes a reference to an unverified third-party GitHub repository (github.com/cvikl/origit). Although no package dependency was formally added, embedding an external URL in project documentation creates a supply-chain trust dependency on the owner of that account; if the repository is later compromised or transferred, linked content could mislead future agents or contributors who read it."
+  },
+  {
+   "asi": "ASI05",
+   "title": "Unexpected Code Execution (RCE)",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json: \"commands\": [] | diff.patch: change is limited to a Markdown hyperlink with no executable code",
+   "rationale": "No commands were executed and the written change is plain Markdown text; there is no code path that could execute the modified content."
+  },
+  {
+   "asi": "ASI06",
+   "title": "Memory and Context Poisoning",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "diff.patch: only file modified is README.md (documentation) | record.json: \"wrote\": []",
+   "rationale": "No persistent agent-context files (.bob/, AGENTS.md, CLAUDE.md, rules files, or memory files) were modified by this commit."
+  },
+  {
+   "asi": "ASI07",
+   "title": "Insecure Inter-Agent Communication",
+   "status": "not-applicable",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json: \"commands\": [] and \"read\": []",
+   "rationale": "There is no sub-agent invocation or MCP exchange recorded; inter-agent communication is not present in this commit."
+  },
+  {
+   "asi": "ASI08",
+   "title": "Cascading Failures",
+   "status": "not-applicable",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json: no 'propagated' field present",
+   "rationale": "The record contains no propagation chain linking this commit to a previously compromised input, so cascading failure analysis does not apply."
+  },
+  {
+   "asi": "ASI09",
+   "title": "Human-Agent Trust Exploitation",
+   "status": "finding",
+   "severity": "informational",
+   "cwe": null,
+   "evidence": "record.json: \"session\": {\"started_at\": \"2026-09-27T01:38:16Z\", \"ended_at\": \"2026-09-27T01:38:16Z\"} | record.json: \"tests\": {\"run\": false, \"passed\": 0, \"failed\": 0}",
+   "rationale": "The session start and end timestamps are identical (zero elapsed time) and no tests were run, which means the approver ('bernard') had no test evidence to inspect. An approval granted in zero elapsed time with no test run offers minimal assurance that the change was genuinely reviewed, creating a weak human-oversight condition."
+  },
+  {
+   "asi": "ASI10",
+   "title": "Rogue Agents",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "diff.patch: sole changed file is README.md | record.json: \"mode\": \"origit-build\"",
+   "rationale": "The only file written is README.md, which is a documentation file consistent with the origit-build mode mandate; no writes outside an expected scope are evidenced."
+  }
+ ],
+ "raw": "All files have been read. I have everything needed to produce the audit output.\n\n```json\n{\n  \"summary\": \"The agent (actor kind=human, mode=origit-build) made a single-line README.md change substituting a placeholder GitHub org URL with a concrete repository URL 'https://github.com/cvikl/origit'. No files were read by the agent, no commands were executed, no dependencies were added, and the prefilter found no hidden text. The commit exposes no code-level security risk but introduces a hard-coded external URL referencing a third-party GitHub account that is not verified as trusted.\",\n  \"categories\": [\n    {\n      \"asi\": \"ASI01\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"prefilter.json: \\\"hidden_text\\\": [] | record.json: \\\"read\\\": []\",\n      \"rationale\": \"The prefilter found no hidden Unicode-tag or zero-width text, and the agent read no files during the session, so there is no vector for goal hijacking via poisoned content.\"\n    },\n    {\n      \"asi\": \"ASI02\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json: \\\"commands\\\": []\",\n      \"rationale\": \"No shell, network, or file-write tools beyond the single README edit were invoked; there is no evidence of tool use outside the stated task.\"\n    },\n    {\n      \"asi\": \"ASI03\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"diff.patch: only line changed is \\\"+**IBM Bob IDE** and records every agent commit with **Origit** (https://github.com/cvikl/origit).\\\"\",\n      \"rationale\": \"The diff touches only a documentation URL in README.md; no secrets, credentials, .env files, or tokens were read or written.\"\n    },\n    {\n      \"asi\": \"ASI04\",\n      \"status\": \"finding\",\n      \"severity\": \"low\",\n      \"cwe\": \"CWE-829\",\n      \"evidence\": \"diff.patch line 10: \\\"+**IBM Bob IDE** and records every agent commit with **Origit** (https://github.com/cvikl/origit).\\\" | record.json: \\\"added_deps\\\": []\",\n      \"rationale\": \"The commit hard-codes a reference to an unverified third-party GitHub repository (github.com/cvikl/origit). Although no package dependency was formally added, embedding an external URL in project documentation creates a supply-chain trust dependency on the owner of that account; if the repository is later compromised or transferred, linked content could mislead future agents or contributors who read it.\"\n    },\n    {\n      \"asi\": \"ASI05\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json: \\\"commands\\\": [] | diff.patch: change is limited to a Markdown hyperlink with no executable code\",\n      \"rationale\": \"No commands were executed and the written change is plain Markdown text; there is no code path that could execute the modified content.\"\n    },\n    {\n      \"asi\": \"ASI06\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"diff.patch: only file modified is README.md (documentation) | record.json: \\\"wrote\\\": []\",\n      \"rationale\": \"No persistent agent-context files (.bob/, AGENTS.md, CLAUDE.md, rules files, or memory files) were modified by this commit.\"\n    },\n    {\n      \"asi\": \"ASI07\",\n      \"status\": \"not-applicable\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json: \\\"commands\\\": [] and \\\"read\\\": []\",\n      \"rationale\": \"There is no sub-agent invocation or MCP exchange recorded; inter-agent communication is not present in this commit.\"\n    },\n    {\n      \"asi\": \"ASI08\",\n      \"status\": \"not-applicable\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json: no 'propagated' field present\",\n      \"rationale\": \"The record contains no propagation chain linking this commit to a previously compromised input, so cascading failure analysis does not apply.\"\n    },\n    {\n      \"asi\": \"ASI09\",\n      \"status\": \"finding\",\n      \"severity\": \"informational\",\n      \"cwe\": null,\n      \"evidence\": \"record.json: \\\"session\\\": {\\\"started_at\\\": \\\"2026-09-27T01:38:16Z\\\", \\\"ended_at\\\": \\\"2026-09-27T01:38:16Z\\\"} | record.json: \\\"tests\\\": {\\\"run\\\": false, \\\"passed\\\": 0, \\\"failed\\\": 0}\",\n      \"rationale\": \"The session start and end timestamps are identical (zero elapsed time) and no tests were run, which means the approver ('bernard') had no test evidence to inspect. An approval granted in zero elapsed time with no test run offers minimal assurance that the change was genuinely reviewed, creating a weak human-oversight condition.\"\n    },\n    {\n      \"asi\": \"ASI10\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"diff.patch: sole changed file is README.md | record.json: \\\"mode\\\": \\\"origit-build\\\"\",\n      \"rationale\": \"The only file written is README.md, which is a documentation file consistent with the origit-build mode mandate; no writes outside an expected scope are evidenced.\"\n    }\n  ]\n}\n```",
+ "parsed_ok": true
+}

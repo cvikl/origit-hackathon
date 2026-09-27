@@ -1,0 +1,39 @@
+{% extends "base.html" %}{% import "_icons.html" as ic %}{% block title %}{{ b.path }} · {{ repo.full_name }} · Origit Console{% endblock %}
+{% block repohead %}{% include "_repohead.html" %}{% endblock %}
+{% block content %}
+<div class="pathbar" style="margin-top:24px">
+  <span class="tag"><span class="dot" style="background:var(--ok)"></span>{{ repo.branch }}</span>
+  <span class="crumbs"><a href="/{{ repo.full_name }}">{{ repo.name }}</a>{% for c in crumbs %}<span class="crumb-sep">/</span><a href="/{{ repo.full_name }}/tree/{{ c.path }}">{{ c.name }}</a>{% endfor %}<span class="crumb-sep">/</span><span class="crumb-cur">{{ b.name }}</span></span>
+</div>
+{% if hidden and repo.plan == "enterprise" %}
+<section class="flash" role="alert">{{ ic.icon('alert') }}<div>
+  <h3>This file carries invisible characters</h3>
+  <p>{% for k, v in hidden.items() %}<strong>{{ v }} {{ k.replace('_', ' ') }}</strong>{{ ', ' if not loop.last }}{% endfor %} characters that a human reader never sees but an agent reads as text. They are marked <mark class="hidden-run">⟨n hidden⟩</mark> below.</p>
+  {% if decoded %}<p class="small muted" style="margin:0 0 6px">Decoded Unicode-tag text:</p><blockquote class="decoded">{{ decoded }}</blockquote>{% endif %}
+</div></section>
+{% endif %}
+<div class="two" style="margin-top:16px">
+<div>
+  <div class="filebox">
+    <div class="filebox-head">
+      <span class="muted small">{{ b.lines }} lines · {{ b.size }} bytes</span>
+      <span class="filebox-right"><span class="mono muted" title="sha256 {{ b.sha256 }}">sha256 {{ b.sha256[:12] }}</span>{% if last %}<a class="sha" href="/{{ repo.full_name }}/commit/{{ last.sha }}">{{ last.short }}</a><span class="muted small">{{ last.date | ago }}</span>{% endif %}</span>
+    </div>
+    {% if b.binary %}<p class="muted" style="padding:16px">Binary file.</p>
+    {% elif rendered %}<div class="md" style="padding:16px 20px">{{ rendered | safe }}</div>
+    {% else %}<pre class="source"><code>{% if repo.plan == "enterprise" %}{{ marked | safe }}{% else %}{{ b.text }}{% endif %}</code></pre>{% endif %}
+  </div>
+</div>
+<aside class="side">
+  <h4 class="sec">Provenance for this file</h4>
+  <div class="card">
+    <p class="muted small">Agent commits whose record lists this path, or content with the same sha256, as read or written.</p>
+    <h4 class="sec" style="margin-top:12px">Read by <span class="counter">{{ readers | length }}</span></h4>
+    {% if readers %}<ul class="minilist">{% for c in readers %}<li><a class="sha" href="/{{ repo.full_name }}/commit/{{ c.sha }}">{{ c.short }}</a><span class="wrap-any">{{ c.subject }}</span></li>{% endfor %}</ul>{% else %}<p class="muted small">No agent read recorded.</p>{% endif %}
+    <h4 class="sec" style="margin-top:14px">Written by <span class="counter">{{ writers | length }}</span></h4>
+    {% if writers %}<ul class="minilist">{% for c in writers %}<li><a class="sha" href="/{{ repo.full_name }}/commit/{{ c.sha }}">{{ c.short }}</a><span class="wrap-any">{{ c.subject }}</span></li>{% endfor %}</ul>{% else %}<p class="muted small">No agent write recorded.</p>{% endif %}
+    <div class="btnrow"><a class="btn btn-sm" href="/{{ repo.full_name }}/taint?q={{ b.path | urlencode }}">{{ ic.icon('search') }}Taint this path</a><a class="btn btn-sm" href="/{{ repo.full_name }}/taint?q={{ b.sha256 }}">Taint by content</a></div>
+  </div>
+</aside>
+</div>
+{% endblock %}

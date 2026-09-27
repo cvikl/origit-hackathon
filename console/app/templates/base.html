@@ -1,0 +1,44 @@
+{% import "_icons.html" as ic %}<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap">
+<title>{% block title %}Origit Console{% endblock %}</title>
+<meta name="description" content="{% block description %}Origit Console: git hosting with agent provenance. See what the agent read before it changed your code.{% endblock %}">
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="{% block bodyclass %}{% endblock %}">
+<a class="skip" href="#main">Skip to content</a>
+<header class="topbar">
+  <div class="wrap topbar-in">
+    <a class="brand" href="/" aria-label="Origit Console home"><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" stroke-width="2.4"/><circle cx="16" cy="16" r="4" fill="currentColor"/><path d="M16 3v8.5M16 20.5V29M3 16h8.5M20.5 16H29" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></a>
+    <a class="wordmark" href="/">Origit <span>Console</span></a>
+    <nav class="topnav" aria-label="Primary">
+      <a href="/explore">Explore</a>
+      <a href="{{ settings.github_url }}" rel="noopener">Open source</a>
+      <a href="/api/docs">API</a>
+    </nav>
+    <div class="topbar-right">
+      {% if bob.installed and bob.api_key %}<span class="bobstatus bobpill bobpill-on" title="Bob Shell installed and BOB_API_KEY set. Bob Review runs on every push on the Business plan."><i class="dot"></i>IBM Bob connected</span>{% else %}<span class="bobstatus bobpill" title="{{ 'BOB_API_KEY is not set' if bob.installed else 'Bob Shell is not installed' }}. Cached evidence and the deterministic pre-filter still work."><i class="dot"></i>IBM Bob not configured</span>{% endif %}
+      {% if settings.demo_account %}<span class="tag tag-ent" title="Read-only demo of a Business plan workspace">{{ settings.demo_account }} · Business plan · demo</span>{% else %}<button class="btn btn-primary btn-sm" id="signin" type="button">Sign in</button>{% endif %}
+    </div>
+  </div>
+</header>
+{% block repohead %}{% endblock %}
+<main id="main" class="wrap">{% block content %}{% endblock %}</main>
+<footer class="foot"><div class="wrap">
+  <div class="foot-cols">
+    <div><h4>Origit Console</h4><a href="/explore">Repositories</a><a href="/api/docs">API</a>{% if request.url.path == '/' %}<a href="#main">Top</a>{% endif %}</div>
+    <div><h4>Open source</h4><a href="{{ settings.github_url }}" rel="noopener">Origit on GitHub, MIT</a><a href="{{ settings.github_url }}#readme" rel="noopener">Install and docs</a><a href="https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/" rel="noopener">OWASP Agentic Top 10</a></div>
+    <div><h4>Built with IBM Bob</h4><a href="https://lablab.ai/ai-hackathons/ibm-bob-2-hackathon" rel="noopener">IBM Bob 2.0 Hackathon</a><a href="https://digital-strategy.ec.europa.eu/en/policies/cyber-resilience-act" rel="noopener">EU Cyber Resilience Act</a><span>Console v{{ version }} beta</span></div>
+  </div>
+  <p class="foot-legal">A hackathon prototype. Bob evaluates and drafts; deterministic code records and queries. All repositories, companies, packages and data are synthetic. © 2026 Origit.</p>
+</div></footer>
+<a class="powered" href="https://bob.ibm.com" rel="noopener" aria-label="Powered by IBM Bob 2.0"><img src="/static/img/bob-standing.webp" alt="" width="28" height="28"><span>Powered by <strong>IBM Bob 2.0</strong></span></a>
+<script src="/static/app.js"></script>
+</body>
+</html>

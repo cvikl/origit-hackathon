@@ -1,3 +1,0 @@
-[submodule "demo/payments-api"]
-	path = demo/payments-api
-	url = ../origit-demo-payments-api

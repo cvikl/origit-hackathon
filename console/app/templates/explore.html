@@ -1,0 +1,7 @@
+{% extends "base.html" %}{% block title %}Explore · Origit Console{% endblock %}
+{% block content %}
+<h2 class="h2">Explore repositories</h2>
+<p class="muted">Repositories hosted on Origit Console. Every commit made by an AI agent carries a hashed provenance record.</p>
+{% if repos %}<div class="repolist" style="margin-top:16px">{% for r in repos %}{% include "_repocard.html" %}{% endfor %}</div>
+{% else %}<section class="empty"><p>No repositories yet.</p></section>{% endif %}
+{% endblock %}

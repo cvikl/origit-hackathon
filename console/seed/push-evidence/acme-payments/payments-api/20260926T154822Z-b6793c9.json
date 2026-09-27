@@ -1,0 +1,120 @@
+{
+ "push_id": "20260926T154822Z-b6793c9",
+ "ran_at": "2026-09-27T02:05:02Z",
+ "source": "bob",
+ "reviewer": "IBM Bob (Bob Shell `bob run`, ask mode)",
+ "stats": {
+  "task_id": "14bac816288c73db623973b95604fde8",
+  "duration_ms": 12974,
+  "session_costs": 0.02501,
+  "max_cost": 0.3,
+  "tool_calls": 1
+ },
+ "elapsed_s": 15.1,
+ "summary": "This push contains a single human-authored commit (b6793c9) that modifies the agent configuration file `.bob/settings.json` to wire a shell script (`origit-trace.sh`) to the UserPromptSubmit lifecycle hook, meaning the script will execute automatically on every future user prompt in this repository. The hook script itself is not present in the diff, so its actual content and behaviour are unverifiable. The change permanently alters agent behaviour for all sessions and introduces an unauditable code-execution path framed under a benign-sounding observability name.",
+ "first_action": "Locate and read the full source of `.bob/hooks/origit-trace.sh` before approving — confirm it does nothing beyond logging and contains no network calls, credential reads, or environment variable captures.",
+ "verdicts": [
+  {
+   "asi": "ASI01",
+   "title": "Agent Goal Hijack",
+   "status": "finding",
+   "severity": "medium",
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "Agent configuration file `.bob/settings.json` was directly modified in b6793c9; whoever controls this file can redirect every future agent session."
+  },
+  {
+   "asi": "ASI02",
+   "title": "Tool Misuse and Exploitation",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "No commands were executed during this session; b6793c9 records an empty commands list."
+  },
+  {
+   "asi": "ASI03",
+   "title": "Identity and Privilege Abuse",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "No credential, secret, or `.env` files appear in the read or write lists for b6793c9."
+  },
+  {
+   "asi": "ASI04",
+   "title": "Agentic Supply Chain Vulnerabilities",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "No new packages, MCP servers, or external dependencies were added in b6793c9."
+  },
+  {
+   "asi": "ASI05",
+   "title": "Unexpected Code Execution (RCE)",
+   "status": "finding",
+   "severity": "high",
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "b6793c9 injects a shell command hook (`sh .bob/hooks/origit-trace.sh`) that fires on every user prompt; the script's content is absent from the diff and cannot be audited."
+  },
+  {
+   "asi": "ASI06",
+   "title": "Memory and Context Poisoning",
+   "status": "finding",
+   "severity": "high",
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "Adding the UserPromptSubmit hook to `.bob/settings.json` in b6793c9 permanently poisons the agent context, making every future prompt trigger an external script."
+  },
+  {
+   "asi": "ASI07",
+   "title": "Insecure Inter-Agent Communication",
+   "status": "not-applicable",
+   "severity": null,
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "No model-output-to-system-input pipeline or automated escalation path is present in this push."
+  },
+  {
+   "asi": "ASI08",
+   "title": "Cascading Failures",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "No cascading reference to a prior tainted session or propagated compromise is recorded for b6793c9."
+  },
+  {
+   "asi": "ASI09",
+   "title": "Human-Agent Trust Exploitation",
+   "status": "finding",
+   "severity": "medium",
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "The script is named `origit-trace.sh`, framing it as routine tracing to mislead approver `bernard` into treating a potentially harmful hook as benign instrumentation."
+  },
+  {
+   "asi": "ASI10",
+   "title": "Rogue Agents",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "Only `.bob/settings.json` was written in b6793c9; no files outside the agent's configuration scope were modified."
+  }
+ ],
+ "raw": "```json\n{\n  \"summary\": \"This push contains a single human-authored commit (b6793c9) that modifies the agent configuration file `.bob/settings.json` to wire a shell script (`origit-trace.sh`) to the UserPromptSubmit lifecycle hook, meaning the script will execute automatically on every future user prompt in this repository. The hook script itself is not present in the diff, so its actual content and behaviour are unverifiable. The change permanently alters agent behaviour for all sessions and introduces an unauditable code-execution path framed under a benign-sounding observability name.\",\n  \"first_action\": \"Locate and read the full source of `.bob/hooks/origit-trace.sh` before approving — confirm it does nothing beyond logging and contains no network calls, credential reads, or environment variable captures.\",\n  \"verdicts\": [\n    {\n      \"asi\": \"ASI01\",\n      \"status\": \"finding\",\n      \"severity\": \"medium\",\n      \"note\": \"Agent configuration file `.bob/settings.json` was directly modified in b6793c9; whoever controls this file can redirect every future agent session.\"\n    },\n    {\n      \"asi\": \"ASI02\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"note\": \"No commands were executed during this session; b6793c9 records an empty commands list.\"\n    },\n    {\n      \"asi\": \"ASI03\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"note\": \"No credential, secret, or `.env` files appear in the read or write lists for b6793c9.\"\n    },\n    {\n      \"asi\": \"ASI04\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"note\": \"No new packages, MCP servers, or external dependencies were added in b6793c9.\"\n    },\n    {\n      \"asi\": \"ASI05\",\n      \"status\": \"finding\",\n      \"severity\": \"high\",\n      \"note\": \"b6793c9 injects a shell command hook (`sh .bob/hooks/origit-trace.sh`) that fires on every user prompt; the script's content is absent from the diff and cannot be audited.\"\n    },\n    {\n      \"asi\": \"ASI06\",\n      \"status\": \"finding\",\n      \"severity\": \"high\",\n      \"note\": \"Adding the UserPromptSubmit hook to `.bob/settings.json` in b6793c9 permanently poisons the agent context, making every future prompt trigger an external script.\"\n    },\n    {\n      \"asi\": \"ASI07\",\n      \"status\": \"not-applicable\",\n      \"severity\": null,\n      \"note\": \"No model-output-to-system-input pipeline or automated escalation path is present in this push.\"\n    },\n    {\n      \"asi\": \"ASI08\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"note\": \"No cascading reference to a prior tainted session or propagated compromise is recorded for b6793c9.\"\n    },\n    {\n      \"asi\": \"ASI09\",\n      \"status\": \"finding\",\n      \"severity\": \"medium\",\n      \"note\": \"The script is named `origit-trace.sh`, framing it as routine tracing to mislead approver `bernard` into treating a potentially harmful hook as benign instrumentation.\"\n    },\n    {\n      \"asi\": \"ASI10\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"note\": \"Only `.bob/settings.json` was written in b6793c9; no files outside the agent's configuration scope were modified.\"\n    }\n  ]\n}\n```",
+ "parsed_ok": true
+}

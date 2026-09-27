@@ -1,0 +1,62 @@
+{% extends "base.html" %}{% import "_icons.html" as ic %}{% block title %}Taint · {{ repo.full_name }} · Origit Console{% endblock %}
+{% block repohead %}{% include "_repohead.html" %}{% endblock %}
+{% block content %}
+<h2 class="h2">Taint</h2>
+<p class="muted">Which commits did an agent write after reading this? A package such as <code>fast-pay-utils</code> or <code>fast-pay-utils@2.1.0</code>, a file path, or the sha256 of content.</p>
+<form class="search" method="get" action="/{{ repo.full_name }}/taint" role="search">
+  {{ ic.icon('search', 'search-ico') }}<input type="search" name="q" value="{{ q }}" placeholder="Package, file path or sha256" aria-label="Taint query" autofocus>
+  <button class="btn btn-primary" type="submit">Taint</button>
+</form>
+{% if suggestions and not q %}<p class="muted small">Dependencies added by agents in this repository: {% for s in suggestions %}<a href="/{{ repo.full_name }}/taint?q={{ s }}" class="mono">{{ s }}</a>{{ ', ' if not loop.last }}{% endfor %}</p>{% endif %}
+
+{% if result %}
+<div class="two">
+<div>
+  <div class="card {{ 'taint-hit' if result.affected else 'taint-clean' }}">
+    <div class="bignum"><span class="num">{{ result.affected | length }}</span><span class="num-label">commit{{ 's' if result.affected | length != 1 }} affected by <code>{{ result.needle }}</code>{% if not result.affected %}<br><span class="muted">{{ result.clean | length }} commits checked. No agent record reads, adds or writes it.</span>{% endif %}</span></div>
+    {% if result.affected %}
+    <dl class="kv">
+      <dt>Sessions</dt><dd class="chips">{% for s, l in result.session_labels.items() %}<span class="mono" title="session {{ s }}">{{ l }}</span>{% endfor %}</dd>
+      <dt>Files written</dt><dd><div class="chips">{% for f in result.files_primary %}<span class="mono">{{ f }}</span>{% endfor %}{% if not result.files_primary %}<span class="muted">none outside tests, vendored packages and manifests</span>{% endif %}</div>
+        {% if result.files_secondary %}<details class="also"><summary>also touched ({{ result.files_secondary | length }})</summary><div class="chips">{% for f in result.files_secondary %}<span class="mono">{{ f }}</span>{% endfor %}</div></details>{% endif %}</dd>
+      <dt>Approver</dt><dd>{{ result.approvers | join(', ') or '–' }}</dd>
+      <dt>First read</dt><dd>{% if result.first_read %}session <strong title="session {{ result.first_read.session }}">{{ result.first_read.label }}</strong>, {{ result.first_read.at | ts }}, commit <a class="mono" href="/{{ repo.full_name }}/commit/{{ result.first_read.commit }}">{{ result.first_read.commit[:7] }}</a>{% else %}–{% endif %}</dd>
+      <dt>Roll back to</dt><dd>{% if result.rollback_commit %}<a class="sha" href="/{{ repo.full_name }}/commit/{{ result.rollback_commit }}">{{ result.rollback_short }}</a> <span class="muted">{{ result.rollback_subject }}</span>{% else %}<span class="muted">no clean commit before the first affected one</span>{% endif %}</dd>
+    </dl>
+    {% endif %}
+  </div>
+
+  <ul class="clist">
+    {% for a in result.affected %}<li class="crow crow-affected">
+      <span class="status-ico bad" title="affected">{{ ic.icon('x-circle') }}</span>
+      <div class="crow-main"><a class="crow-subject" href="/{{ repo.full_name }}/commit/{{ a.sha }}">{{ a.subject }}</a>
+        <div class="crow-meta">{% if a.session %}<span class="mono session" title="session {{ a.session }}">{{ a.session_label }}</span>{% endif %}<span>{{ a.date | ago }}</span>{% if a.approver %}<span class="sep"></span><span>approved by {{ a.approver }}</span>{% endif %}</div>
+        <div class="chips">{% for m in a.matched %}<span>{{ m | matchlabel }}</span>{% endfor %}</div></div>
+      <a class="sha" href="/{{ repo.full_name }}/commit/{{ a.sha }}">{{ a.short }}</a></li>{% endfor %}
+    {% for cl in result.clean %}<li class="crow crow-clean">
+      <span class="status-ico good" title="clean">{{ ic.icon('check-circle') }}</span>
+      <div class="crow-main"><a class="crow-subject" href="/{{ repo.full_name }}/commit/{{ cl.sha }}">{{ cl.subject }}</a>
+        <div class="crow-meta"><span>{{ 'Bob IDE' if cl.actor == 'bob-ide' else (cl.actor or 'no record') }}</span><span>{{ cl.date | ago }}</span></div></div>
+      <a class="sha" href="/{{ repo.full_name }}/commit/{{ cl.sha }}">{{ cl.short }}</a></li>{% endfor %}
+  </ul>
+</div>
+<aside class="side">
+  {% if repo.plan == "enterprise" %}<h4 class="sec">CRA Article 14 early warning {% if draft %}<span class="tag tag-ink">{{ 'IBM Bob' if draft.source != 'seed' else 'IBM Bob, seeded' }}</span>{% endif %}</h4>
+  <div class="card">
+    <p class="muted small">Within 24 hours of becoming aware, the manufacturer sends an early warning to ENISA (Art. 14(4)(a)). Everything it needs is in the record: affected components, sessions, approver, first read, corrective measure.</p>
+    {% if draft %}<div class="draft tile" id="draft">{{ draft.text }}</div>
+      <p class="muted small" style="margin:8px 0 0">Drafted {{ draft.ran_at | ts }}{% if draft.stats and draft.stats.session_costs %} · {{ draft.stats.session_costs }} Bobcoins{% endif %}</p>
+      <div class="btnrow"><button class="btn btn-sm" data-copy="#draft">{{ ic.icon('copy') }}Copy</button><button class="btn btn-sm" data-action="draft" data-url="/api/{{ repo.full_name }}/draft-art14?q={{ result.needle | urlencode }}&force=true">Re-draft with Bob</button></div>
+    {% else %}
+      <div class="btnrow"><button class="btn btn-primary btn-sm" data-action="draft" data-url="/api/{{ repo.full_name }}/draft-art14?q={{ result.needle | urlencode }}" {% if not result.affected %}disabled{% endif %}>Draft with Bob</button>
+      <a class="btn btn-sm" href="/api/{{ repo.full_name }}/draft-art14/template?q={{ result.needle | urlencode }}">Template without Bob</a></div>
+    {% endif %}
+    <div class="status" id="action-status" hidden></div>
+  </div>{% endif %}
+  <h4 class="sec">Same query from the CLI</h4>
+  <div class="card"><pre class="codeblock tile wrap"><code>origit taint {{ result.needle }}
+origit export > evidence.json</code></pre></div>
+</aside>
+</div>
+{% endif %}
+{% endblock %}

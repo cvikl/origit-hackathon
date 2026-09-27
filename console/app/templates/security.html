@@ -1,0 +1,43 @@
+{% extends "base.html" %}{% import "_icons.html" as ic %}{% block title %}Security · {{ repo.full_name }} · Origit Console{% endblock %}
+{% block repohead %}{% include "_repohead.html" %}{% endblock %}
+{% block content %}
+<h2 class="h2">Security</h2>
+<p class="muted">Every push is checked against the OWASP Top 10 for Agentic Applications: what the agent read, pulled in, ran and wrote. The pre-filter runs on arrival; IBM Bob reads the evidence and writes one verdict per push. A finding is medium or worse on an agent run, and an identity finding needs a credential, key or secret file in the record; everything else is kept as a note on the commit page. Evidence, never a gate decision.</p>
+
+<div class="stats4">
+  <div class="tile stat"><div class="num">{{ stats.pushes }}</div><div class="muted small">pushes checked</div></div>
+  <div class="tile stat"><div class="num">{{ stats.reviewed }}<span class="muted">/{{ stats.runs }}</span></div><div class="muted small">agent runs reviewed by Bob</div></div>
+  <div class="tile stat {{ 'stat-bad' if stats.findings }}"><div class="num">{{ attention | length }}</div><div class="muted small">need attention</div></div>
+  <div class="tile stat"><div class="num">{{ stats.clean }}<span class="muted">/10</span></div><div class="muted small">checks with no finding</div></div>
+</div>
+
+{% if attention %}
+<h4 class="sec">What needs attention</h4>
+<div class="card">
+  <ul class="attn">{% for g in attention %}<li>
+    <span class="tag sev-{{ g.severity }}"><i class="dot"></i>{{ g.severity }}</span>
+    <div class="attn-main">
+      <div><strong>{{ g.name }}</strong>{% if g.human_only %} <span class="muted small">· human commits</span>{% endif %}</div>
+      <div class="attn-quote">“{{ g.quote }}”</div>
+      <div class="muted small">{{ g.commits | length }} commit{{ 's' if g.commits | length != 1 }}: {% for c in g.commits[:5] %}<a class="mono" href="/{{ repo.full_name }}/commit/{{ c.sha }}">{{ c.short }}</a>{% if c.label %} <span class="mono">{{ c.label }}</span>{% endif %}{{ ', ' if not loop.last }}{% endfor %}{% if g.commits | length > 5 %} …{% endif %}</div>
+    </div>
+  </li>{% endfor %}</ul>
+</div>
+{% endif %}
+
+<h4 class="sec">The ten checks</h4>
+<div class="asi-tiles">{% for t in tiles %}
+  <div class="tile asi-tile {{ 'asi-tile-open' if t.findings }}" title="{{ t.asi }} · {{ t.asks }}">
+    <div class="asi-tile-title">{{ t.name }} <span class="muted">· {{ t.asi }}</span></div>
+    {% if t.findings %}<span class="tag sev-{{ t.max_severity }}"><i class="dot"></i>{{ t.findings }} finding{{ 's' if t.findings != 1 }}</span>{% else %}<span class="tag tag-ok"><i class="dot"></i>no finding</span>{% endif %}{% if t.notes %}<div class="muted small" style="margin-top:4px">{{ t.notes }} note{{ "s" if t.notes != 1 }}</div>{% endif %}
+  </div>{% endfor %}</div>
+
+<h4 class="sec">Latest pushes <a class="muted small" href="/{{ repo.full_name }}/pushes" style="font-weight:400;margin-left:8px">full evidence on the Pushes tab</a></h4>
+<div class="card" style="padding:0">
+  <ul class="pushlist">{% for p in recent %}<li>
+    <div class="pushlist-meta"><span>{{ p.at | date }}</span><span class="muted">{{ p.agg.n_records }} run{{ 's' if p.agg.n_records != 1 }}</span>
+      {% if p.agg.max_severity %}<span class="tag sev-{{ p.agg.max_severity }}"><i class="dot"></i>{{ p.agg.max_severity }}</span>{% elif p.agg.n_records %}<span class="tag tag-ok"><i class="dot"></i>clean</span>{% else %}<span class="tag">no records</span>{% endif %}</div>
+    <div class="pushlist-line">{% if p.line %}{{ p.line }}{% elif p.agg.n_records %}<span class="muted">Bob's verdict pending.</span>{% else %}<span class="muted">Commits without Origit records (before install).</span>{% endif %} <a class="small" href="/{{ repo.full_name }}/pushes#push-{{ p.id }}">details</a></div>
+  </li>{% else %}<li class="muted">No pushes yet.</li>{% endfor %}</ul>
+</div>
+{% endblock %}

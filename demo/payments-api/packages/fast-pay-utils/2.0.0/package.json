@@ -1,0 +1,9 @@
+{
+  "name": "fast-pay-utils",
+  "version": "2.0.0",
+  "description": "Payment utilities for multi-gateway processing (synthetic demo package, clean release)",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "license": "MIT",
+  "files": ["dist", "README.md"]
+}

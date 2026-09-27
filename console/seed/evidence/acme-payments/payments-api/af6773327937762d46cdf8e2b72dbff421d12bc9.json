@@ -1,0 +1,109 @@
+{
+ "sha": "af6773327937762d46cdf8e2b72dbff421d12bc9",
+ "ran_at": "2026-09-27T12:50:32Z",
+ "source": "bob",
+ "reviewer": "IBM Bob (Bob Shell `bob run`, ask mode)",
+ "stats": {
+  "task_id": "c6024bbd4a4f49f1f03279d23e515d2b",
+  "duration_ms": 32871,
+  "session_costs": 0.075936,
+  "max_cost": 0.5,
+  "tool_calls": 6
+ },
+ "elapsed_s": 34.5,
+ "summary": "A human-authored commit modifies two shell hook scripts (.bob/hooks/origit-trace.sh and .githooks/origit-bin.sh) to add a new origit binary resolution path sourced from git config (git config --get origit.bin). No AI agent reads or writes are recorded; the actor is human. The primary exposure is that both hooks now execute a binary whose path is controlled by git configuration, which can be set by a repository's .git/config and could point to an attacker-controlled executable in a compromised or malicious clone.",
+ "categories": [
+  {
+   "asi": "ASI01",
+   "title": "Agent Goal Hijack",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "prefilter.json: \"hidden_text\": [] — record.json: \"read\": []",
+   "rationale": "No files were read by an agent and no hidden Unicode-tag or zero-width text was detected; there is no prompt-injection surface in this commit."
+  },
+  {
+   "asi": "ASI02",
+   "title": "Tool Misuse and Exploitation",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json: \"commands\": [] — record.json: \"actor\": {\"kind\": \"human\"}",
+   "rationale": "No agent tool use occurred; the commit is human-authored with no recorded command execution."
+  },
+  {
+   "asi": "ASI03",
+   "title": "Identity and Privilege Abuse",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "diff.patch: changes are limited to binary-resolution shell logic and SPEC.md task-numbering; no credential, key, token, or .env file is read, written, or referenced.",
+   "rationale": "No secret values, credential files, or tokens appear anywhere in the diff or record."
+  },
+  {
+   "asi": "ASI04",
+   "title": "Agentic Supply Chain Vulnerabilities",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json: \"added_deps\": []",
+   "rationale": "No new dependencies, packages, MCP servers, or skills were introduced by this commit."
+  },
+  {
+   "asi": "ASI05",
+   "title": "Unexpected Code Execution (RCE)",
+   "status": "finding",
+   "severity": "medium",
+   "cwe": "CWE-94",
+   "evidence": "diff.patch line 10: \"+for c in \\\"$ORIGIT_BIN\\\" \\\"$(git config --get origit.bin 2>/dev/null)\\\" \\\"$(command -v origit 2>/dev/null)\\\" ...\" — diff.patch line 24: \"+for c in \\\"$ORIGIT_BIN\\\" \\\"$(git config --get origit.bin 2>/dev/null)\\\" \\\"$(command -v origit 2>/dev/null)\\\" ...\"",
+   "rationale": "Both hooks now resolve the origit binary by executing 'git config --get origit.bin', then immediately exec the result if it is a non-empty executable path. Git config can be set locally via a repository's .git/config (e.g., in a malicious or compromised clone), allowing an attacker to redirect the hooks to execute an arbitrary binary. This is an untrusted-input-driven code execution path introduced directly in the hook scripts."
+  },
+  {
+   "asi": "ASI06",
+   "title": "Memory and Context Poisoning",
+   "status": "finding",
+   "severity": "informational",
+   "cwe": "CWE-829",
+   "evidence": "prefilter.json: {\"asi\": \"ASI06\", \"title\": \"Memory and Context Poisoning\", \"severity\": \"informational\", \"cwe\": \"CWE-829\", \"evidence\": \"agent configuration changed by human: .bob/hooks/origit-trace.sh\", \"ref\": \".bob/hooks/origit-trace.sh\", \"reason\": \"config changed by human\"}",
+   "rationale": "A file in the persistent agent configuration directory (.bob/hooks/) was modified by a human actor, matching the ASI06 trigger condition flagged by the pre-filter. The change alters how the agent's hook resolves its binary, affecting all future agent sessions."
+  },
+  {
+   "asi": "ASI07",
+   "title": "Insecure Inter-Agent Communication",
+   "status": "not-applicable",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json: \"commands\": [], \"read\": [], \"wrote\": []",
+   "rationale": "No inter-agent communication, MCP exchange, or subagent invocation is present in this commit."
+  },
+  {
+   "asi": "ASI08",
+   "title": "Cascading Failures",
+   "status": "not-applicable",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json contains no 'propagated' field and this is a human-authored commit with no prior compromised agent input chain.",
+   "rationale": "There is no evidence of cascading propagation from a prior compromised agent commit."
+  },
+  {
+   "asi": "ASI09",
+   "title": "Human-Agent Trust Exploitation",
+   "status": "finding",
+   "severity": "low",
+   "cwe": null,
+   "evidence": "diff.patch lines 20-21: \"-# Locate the origit CLI: $ORIGIT_BIN, then PATH, then a venv inside the repo.\" vs \"+# Locate the origit CLI: $ORIGIT_BIN, git config origit.bin, PATH, then a venv inside the repo.\" — the comment accurately describes the new resolution order, but the security consequence (untrusted git config controlling binary execution) is not surfaced to the approver.",
+   "rationale": "The diff comment update describes the functional change but does not disclose to the human approver that git config is a repository-local, potentially attacker-controlled source, which could lead an approver to underestimate the trust implications of the change."
+  },
+  {
+   "asi": "ASI10",
+   "title": "Rogue Agents",
+   "status": "not-applicable",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json: \"actor\": {\"kind\": \"human\"} — record.json: \"wrote\": []",
+   "rationale": "The actor is human, not an agent; no agent scope or mandate restriction applies to this commit."
+  }
+ ],
+ "raw": "I have everything needed. Let me analyze each category:\n\n**Key observations:**\n1. `record.json`: `actor.kind = \"human\"`, `read: []`, `wrote: []`, `commands: []`, `added_deps: []`, tests not run. This is a **human-authored commit**, not an AI agent commit.\n2. `prefilter.json`: One finding — ASI06, informational, CWE-829, agent configuration changed by human: `.bob/hooks/origit-trace.sh`.\n3. `diff.patch`: Two shell scripts (`.bob/hooks/origit-trace.sh` and `.githooks/origit-bin.sh`) modified to add `$(git config --get origit.bin 2>/dev/null)` as a new binary resolution path. `SPEC.md` has minor task-numbering edits.\n4. No reads directory / no read files. `hidden_text: []`.\n\nThe critical security question for ASI05: the added `$(git config --get origit.bin 2>/dev/null)` in both shell scripts means the origit binary path can now be set via **git config**, which is a repository-local, user-local, or system-level config. A malicious git config (e.g., from a `.git/config` in a cloned repo) could redirect `origit.bin` to an arbitrary executable, causing execution of an attacker-controlled binary.\n\n```json\n{\n  \"summary\": \"A human-authored commit modifies two shell hook scripts (.bob/hooks/origit-trace.sh and .githooks/origit-bin.sh) to add a new origit binary resolution path sourced from git config (git config --get origit.bin). No AI agent reads or writes are recorded; the actor is human. The primary exposure is that both hooks now execute a binary whose path is controlled by git configuration, which can be set by a repository's .git/config and could point to an attacker-controlled executable in a compromised or malicious clone.\",\n  \"categories\": [\n    {\n      \"asi\": \"ASI01\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"prefilter.json: \\\"hidden_text\\\": [] — record.json: \\\"read\\\": []\",\n      \"rationale\": \"No files were read by an agent and no hidden Unicode-tag or zero-width text was detected; there is no prompt-injection surface in this commit.\"\n    },\n    {\n      \"asi\": \"ASI02\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json: \\\"commands\\\": [] — record.json: \\\"actor\\\": {\\\"kind\\\": \\\"human\\\"}\",\n      \"rationale\": \"No agent tool use occurred; the commit is human-authored with no recorded command execution.\"\n    },\n    {\n      \"asi\": \"ASI03\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"diff.patch: changes are limited to binary-resolution shell logic and SPEC.md task-numbering; no credential, key, token, or .env file is read, written, or referenced.\",\n      \"rationale\": \"No secret values, credential files, or tokens appear anywhere in the diff or record.\"\n    },\n    {\n      \"asi\": \"ASI04\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json: \\\"added_deps\\\": []\",\n      \"rationale\": \"No new dependencies, packages, MCP servers, or skills were introduced by this commit.\"\n    },\n    {\n      \"asi\": \"ASI05\",\n      \"status\": \"finding\",\n      \"severity\": \"medium\",\n      \"cwe\": \"CWE-94\",\n      \"evidence\": \"diff.patch line 10: \\\"+for c in \\\\\\\"$ORIGIT_BIN\\\\\\\" \\\\\\\"$(git config --get origit.bin 2>/dev/null)\\\\\\\" \\\\\\\"$(command -v origit 2>/dev/null)\\\\\\\" ...\\\" — diff.patch line 24: \\\"+for c in \\\\\\\"$ORIGIT_BIN\\\\\\\" \\\\\\\"$(git config --get origit.bin 2>/dev/null)\\\\\\\" \\\\\\\"$(command -v origit 2>/dev/null)\\\\\\\" ...\\\"\",\n      \"rationale\": \"Both hooks now resolve the origit binary by executing 'git config --get origit.bin', then immediately exec the result if it is a non-empty executable path. Git config can be set locally via a repository's .git/config (e.g., in a malicious or compromised clone), allowing an attacker to redirect the hooks to execute an arbitrary binary. This is an untrusted-input-driven code execution path introduced directly in the hook scripts.\"\n    },\n    {\n      \"asi\": \"ASI06\",\n      \"status\": \"finding\",\n      \"severity\": \"informational\",\n      \"cwe\": \"CWE-829\",\n      \"evidence\": \"prefilter.json: {\\\"asi\\\": \\\"ASI06\\\", \\\"title\\\": \\\"Memory and Context Poisoning\\\", \\\"severity\\\": \\\"informational\\\", \\\"cwe\\\": \\\"CWE-829\\\", \\\"evidence\\\": \\\"agent configuration changed by human: .bob/hooks/origit-trace.sh\\\", \\\"ref\\\": \\\".bob/hooks/origit-trace.sh\\\", \\\"reason\\\": \\\"config changed by human\\\"}\",\n      \"rationale\": \"A file in the persistent agent configuration directory (.bob/hooks/) was modified by a human actor, matching the ASI06 trigger condition flagged by the pre-filter. The change alters how the agent's hook resolves its binary, affecting all future agent sessions.\"\n    },\n    {\n      \"asi\": \"ASI07\",\n      \"status\": \"not-applicable\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json: \\\"commands\\\": [], \\\"read\\\": [], \\\"wrote\\\": []\",\n      \"rationale\": \"No inter-agent communication, MCP exchange, or subagent invocation is present in this commit.\"\n    },\n    {\n      \"asi\": \"ASI08\",\n      \"status\": \"not-applicable\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json contains no 'propagated' field and this is a human-authored commit with no prior compromised agent input chain.\",\n      \"rationale\": \"There is no evidence of cascading propagation from a prior compromised agent commit.\"\n    },\n    {\n      \"asi\": \"ASI09\",\n      \"status\": \"finding\",\n      \"severity\": \"low\",\n      \"cwe\": null,\n      \"evidence\": \"diff.patch lines 20-21: \\\"-# Locate the origit CLI: $ORIGIT_BIN, then PATH, then a venv inside the repo.\\\" vs \\\"+# Locate the origit CLI: $ORIGIT_BIN, git config origit.bin, PATH, then a venv inside the repo.\\\" — the comment accurately describes the new resolution order, but the security consequence (untrusted git config controlling binary execution) is not surfaced to the approver.\",\n      \"rationale\": \"The diff comment update describes the functional change but does not disclose to the human approver that git config is a repository-local, potentially attacker-controlled source, which could lead an approver to underestimate the trust implications of the change.\"\n    },\n    {\n      \"asi\": \"ASI10\",\n      \"status\": \"not-applicable\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json: \\\"actor\\\": {\\\"kind\\\": \\\"human\\\"} — record.json: \\\"wrote\\\": []\",\n      \"rationale\": \"The actor is human, not an agent; no agent scope or mandate restriction applies to this commit.\"\n    }\n  ]\n}\n```",
+ "parsed_ok": true
+}

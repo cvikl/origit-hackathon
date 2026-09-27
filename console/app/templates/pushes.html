@@ -1,0 +1,12 @@
+{% extends "base.html" %}{% import "_icons.html" as ic %}{% block title %}Pushes · {{ repo.full_name }} · Origit Console{% endblock %}
+{% block repohead %}{% include "_repohead.html" %}{% endblock %}
+{% block content %}
+<h2 class="h2">Pushes</h2>
+<p class="muted">{% if repo.plan == "enterprise" %}A push is what a reviewer approves. On arrival every push is pre-filtered at zero cost; then IBM Bob reviews each run in it and writes one summary per push. Findings are cited to the run, session and input they come from.{% else %}Every push received for this repository, newest first.{% endif %}</p>
+{% if pushes %}{% for p in pushes %}{% if repo.plan == "enterprise" %}{% include "_pushcard.html" %}{% else %}
+<section class="cday">
+  <h4 class="sec">{{ ic.icon('upload') }}{{ p.at | ts }}<span class="muted">· {{ p.source }}{% if p.notes_updated %} · notes updated{% endif %}</span></h4>
+  {% if p.rows %}<ul class="clist">{% for r in p.rows %}{% include "_row.html" %}{% endfor %}</ul>{% else %}<p class="muted small">No new commits in this push.</p>{% endif %}
+</section>{% endif %}
+{% endfor %}{% else %}<section class="empty"><p>No pushes received yet. Records arrive with the branch as <span class="mono">refs/notes/origit</span>.</p></section>{% endif %}
+{% endblock %}

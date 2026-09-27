@@ -1,0 +1,120 @@
+{
+ "push_id": "20260927T124939Z-970e7f9",
+ "ran_at": "2026-09-27T12:50:27Z",
+ "source": "bob",
+ "reviewer": "IBM Bob (Bob Shell `bob run`, ask mode)",
+ "stats": {
+  "task_id": "bd7c0bc7c4232fd72410525f641f424a",
+  "duration_ms": 14277,
+  "session_costs": 0.024078000000000002,
+  "max_cost": 0.3,
+  "tool_calls": 1
+ },
+ "elapsed_s": 16.0,
+ "summary": "This push contains a single human-authored commit (970e7f9) that edits documentation only — specifically neutral-wording changes to a README and advisory — with no files read or written by an agent, no dependencies added, and no commands executed. Because it is a human commit with no agent session, the per-commit OWASP evidence covers only six of the ten checks and leaves four entirely unassessed. The documentation subject line is truncated, which prevents a full review of what was actually changed or omitted.",
+ "first_action": "Open the full diff of 970e7f9 and read every changed line in the README and advisory to verify that the 'neutral wording' edit does not suppress, obscure, or contradict security-relevant information — and to confirm the four unchecked categories (injected instructions, executed-code safety, configuration changes, and mandate compliance) are genuinely not applicable.",
+ "verdicts": [
+  {
+   "asi": "ASI01",
+   "title": "Agent Goal Hijack",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "No agent session in 970e7f9; per-commit evidence confirms no hidden or injected instructions were present."
+  },
+  {
+   "asi": "ASI02",
+   "title": "Tool Misuse and Exploitation",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "No new dependencies were added in 970e7f9, so supply-chain risk was marked clean."
+  },
+  {
+   "asi": "ASI03",
+   "title": "Identity and Privilege Abuse",
+   "status": "not-applicable",
+   "severity": null,
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "No agent read any files in 970e7f9, so credential or secret leakage via over-broad file access was not assessed and cannot be confirmed clean."
+  },
+  {
+   "asi": "ASI04",
+   "title": "Agentic Supply Chain Vulnerabilities",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "Zero commands were executed in 970e7f9; no arbitrary or injected code ran."
+  },
+  {
+   "asi": "ASI05",
+   "title": "Unexpected Code Execution (RCE)",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "No configuration files were touched in 970e7f9 per the evidence record."
+  },
+  {
+   "asi": "ASI06",
+   "title": "Memory and Context Poisoning",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "Commit is human-authored with no agent session label, so resource-exhaustion via agent loops was not a vector."
+  },
+  {
+   "asi": "ASI07",
+   "title": "Insecure Inter-Agent Communication",
+   "status": "finding",
+   "severity": "medium",
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "The commit subject line in 970e7f9 is truncated ('…no personal names in the '), making it impossible to fully verify what the summary describes or omits without inspecting the raw diff."
+  },
+  {
+   "asi": "ASI08",
+   "title": "Cascading Failures",
+   "status": "not-applicable",
+   "severity": null,
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "No agent session (#session) is associated with 970e7f9, so agent identity and mandate boundaries were not evaluated."
+  },
+  {
+   "asi": "ASI09",
+   "title": "Human-Agent Trust Exploitation",
+   "status": "not-applicable",
+   "severity": null,
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "No agent read external resources or files in 970e7f9, so data-exfiltration paths were not assessed."
+  },
+  {
+   "asi": "ASI10",
+   "title": "Rogue Agents",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "No tests were run in 970e7f9, but the check was explicitly marked clean in the per-commit evidence."
+  }
+ ],
+ "raw": "```json\n{\n  \"summary\": \"This push contains a single human-authored commit (970e7f9) that edits documentation only — specifically neutral-wording changes to a README and advisory — with no files read or written by an agent, no dependencies added, and no commands executed. Because it is a human commit with no agent session, the per-commit OWASP evidence covers only six of the ten checks and leaves four entirely unassessed. The documentation subject line is truncated, which prevents a full review of what was actually changed or omitted.\",\n  \"first_action\": \"Open the full diff of 970e7f9 and read every changed line in the README and advisory to verify that the 'neutral wording' edit does not suppress, obscure, or contradict security-relevant information — and to confirm the four unchecked categories (injected instructions, executed-code safety, configuration changes, and mandate compliance) are genuinely not applicable.\",\n  \"verdicts\": [\n    {\n      \"asi\": \"ASI01\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"note\": \"No agent session in 970e7f9; per-commit evidence confirms no hidden or injected instructions were present.\"\n    },\n    {\n      \"asi\": \"ASI02\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"note\": \"No new dependencies were added in 970e7f9, so supply-chain risk was marked clean.\"\n    },\n    {\n      \"asi\": \"ASI03\",\n      \"status\": \"not-applicable\",\n      \"severity\": null,\n      \"note\": \"No agent read any files in 970e7f9, so credential or secret leakage via over-broad file access was not assessed and cannot be confirmed clean.\"\n    },\n    {\n      \"asi\": \"ASI04\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"note\": \"Zero commands were executed in 970e7f9; no arbitrary or injected code ran.\"\n    },\n    {\n      \"asi\": \"ASI05\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"note\": \"No configuration files were touched in 970e7f9 per the evidence record.\"\n    },\n    {\n      \"asi\": \"ASI06\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"note\": \"Commit is human-authored with no agent session label, so resource-exhaustion via agent loops was not a vector.\"\n    },\n    {\n      \"asi\": \"ASI07\",\n      \"status\": \"finding\",\n      \"severity\": \"medium\",\n      \"note\": \"The commit subject line in 970e7f9 is truncated ('…no personal names in the '), making it impossible to fully verify what the summary describes or omits without inspecting the raw diff.\"\n    },\n    {\n      \"asi\": \"ASI08\",\n      \"status\": \"not-applicable\",\n      \"severity\": null,\n      \"note\": \"No agent session (#session) is associated with 970e7f9, so agent identity and mandate boundaries were not evaluated.\"\n    },\n    {\n      \"asi\": \"ASI09\",\n      \"status\": \"not-applicable\",\n      \"severity\": null,\n      \"note\": \"No agent read external resources or files in 970e7f9, so data-exfiltration paths were not assessed.\"\n    },\n    {\n      \"asi\": \"ASI10\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"note\": \"No tests were run in 970e7f9, but the check was explicitly marked clean in the per-commit evidence.\"\n    }\n  ]\n}\n```",
+ "parsed_ok": true
+}

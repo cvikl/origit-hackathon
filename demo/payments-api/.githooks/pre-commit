@@ -1,0 +1,5 @@
+#!/bin/sh
+# Origit pre-commit: fold the Bob trace into a pending record.
+# Rule: a commit without a record does not exist. Set ORIGIT_REQUIRE_TRACE=1 to refuse untraced (agent) commits.
+ORIGIT=$(sh "$(dirname "$0")/origit-bin.sh") || { echo "origit: CLI not found; refusing to commit without provenance (pip install -e origit/ or set ORIGIT_BIN)" >&2; exit 1; }
+"$ORIGIT" record fold || exit 1

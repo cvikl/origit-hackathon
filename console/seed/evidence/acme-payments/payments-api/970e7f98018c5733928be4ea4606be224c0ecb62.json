@@ -1,0 +1,109 @@
+{
+ "sha": "970e7f98018c5733928be4ea4606be224c0ecb62",
+ "ran_at": "2026-09-27T12:50:10Z",
+ "source": "bob",
+ "reviewer": "IBM Bob (Bob Shell `bob run`, ask mode)",
+ "stats": {
+  "task_id": "dcd48e4de9491771d7ffc80db3aba1cb",
+  "duration_ms": 28984,
+  "session_costs": 0.082846,
+  "max_cost": 0.5,
+  "tool_calls": 5
+ },
+ "elapsed_s": 30.6,
+ "summary": "The commit was authored by a human actor (not an AI agent), read no files, executed no commands, added no dependencies, and ran no tests. The only changes are to two documentation files (ADVISORY.md and README.md) inside a demo package: both replace a named contributor with anonymous/generic language. The README.md change also adds a line describing the hidden Unicode-tag instruction and exfiltration call that exist in the pre-existing synthetic 2.1.0 demo package — but the malicious code itself is not introduced or modified by this commit.",
+ "categories": [
+  {
+   "asi": "ASI01",
+   "title": "Agent Goal Hijack",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "prefilter.json: \"hidden_text\": [] | record.json: \"read\": []",
+   "rationale": "The pre-filter detected no hidden Unicode-tag or zero-width text in this commit, and the provenance record confirms the actor read no files, so there was no opportunity for goal hijacking via a read artifact."
+  },
+  {
+   "asi": "ASI02",
+   "title": "Tool Misuse and Exploitation",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json: \"commands\": []",
+   "rationale": "No shell, network, or file-write tools were invoked; the provenance record lists an empty commands array."
+  },
+  {
+   "asi": "ASI03",
+   "title": "Identity and Privilege Abuse",
+   "status": "not-applicable",
+   "severity": null,
+   "cwe": null,
+   "evidence": "diff.patch (README.md +26): \"`src/index.ts` runs `initializeTelemetry()` at import time: it snapshots `process.env` and `.env`, base64-encodes them and issues a GET to `http://localhost:8080/sync-config`\"",
+   "rationale": "The new README.md line documents that the pre-existing 2.1.0 demo package exfiltrates process.env and .env; no actual secret values or credential files are written or exposed by this commit itself, so this is informational only."
+  },
+  {
+   "asi": "ASI04",
+   "title": "Agentic Supply Chain Vulnerabilities",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json: \"added_deps\": []",
+   "rationale": "No dependencies, packages, MCP servers, or skills were added or modified in this commit."
+  },
+  {
+   "asi": "ASI05",
+   "title": "Unexpected Code Execution (RCE)",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json: \"commands\": [] | diff.patch: only .md file modifications",
+   "rationale": "No code was written and no commands were executed; the diff is limited to documentation text changes with no executable content introduced."
+  },
+  {
+   "asi": "ASI06",
+   "title": "Memory and Context Poisoning",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "diff.patch: only modifies packages/fast-pay-utils/ADVISORY.md and packages/fast-pay-utils/README.md",
+   "rationale": "No persistent agent context files (rules, memory files, AGENTS.md, .bob/, CLAUDE.md) were touched by this commit."
+  },
+  {
+   "asi": "ASI07",
+   "title": "Insecure Inter-Agent Communication",
+   "status": "not-applicable",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json: \"commands\": [] | diff.patch: documentation-only changes",
+   "rationale": "No subagent or MCP exchanges are involved in this commit."
+  },
+  {
+   "asi": "ASI08",
+   "title": "Cascading Failures",
+   "status": "not-applicable",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json: no \"propagated\" field present; diff.patch: documentation-only changes",
+   "rationale": "There is no propagated-compromise chain indicator in the provenance record, and the changes are limited to anonymising documentation text."
+  },
+  {
+   "asi": "ASI09",
+   "title": "Human-Agent Trust Exploitation",
+   "status": "not-applicable",
+   "severity": null,
+   "cwe": null,
+   "evidence": "diff.patch (README.md +24): \"`2.1.0/` — **compromised release** (synthetic, built for the demo). `src/index.ts` runs `initializeTelemetry()` at import time: it snapshots `process.env` and `.env`, base64-encodes them and issues a GET to `http://localhost:8080/sync-config` (localhost only, errors silenced — it never leaves the machine). The call is hidden by ~300 spaces of indentation.\" | diff.patch (README.md +28): \"`README.md` and the docstring carry an invisible Unicode-tag instruction (U+E0000 block) telling an agent to call `initializeTelemetry(details)` around every `processPayment()`.\"",
+   "rationale": "The updated README.md now explicitly describes, within the same repository, the exact mechanism (hidden Unicode-tag prompt injection, exfiltration URL, obfuscation technique) used by the malicious demo package; a future AI agent reading this file would receive a detailed map of the attack vector, slightly increasing the risk that the description itself could serve as a secondary instruction surface — informational only since the actor is human and the content is framed as advisory documentation."
+  },
+  {
+   "asi": "ASI10",
+   "title": "Rogue Agents",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json: \"actor\": {\"kind\": \"human\", \"mode\": \"origit-build\"} | diff.patch: only modifies packages/fast-pay-utils/ADVISORY.md and packages/fast-pay-utils/README.md",
+   "rationale": "The actor is recorded as human in origit-build mode; only documentation files within the declared package scope were modified, with no out-of-scope writes."
+  }
+ ],
+ "raw": "Now I have all the information needed to produce the security review. Let me analyze everything carefully.\n\n**Key observations:**\n1. `record.json`: `\"actor.kind\": \"human\"` (not an AI agent), `\"read\": []`, `\"commands\": []`, `\"wrote\": []`, `\"added_deps\": []`, tests not run.\n2. `prefilter.json`: `\"needs_review\": false`, `\"findings\": []`, `\"hidden_text\": []` — no hidden text triggered for this commit.\n3. `diff.patch`: Two documentation-only changes — anonymising a named individual in `ADVISORY.md` and `README.md` (changing \"a contributor\" to generic language), and updating \"a contributor\" attribution to \"synthetic.\" The `README.md` change also documents the existence of a hidden Unicode-tag instruction and the `initializeTelemetry()` exfiltration in the *described* `2.1.0` package — but these are descriptions of a demo attack in documentation, not the introduction of the malicious code itself.\n4. No `reads/` directory — the agent read nothing (confirmed by `record.json` `\"read\": []`).\n\n```json\n{\n  \"summary\": \"The commit was authored by a human actor (not an AI agent), read no files, executed no commands, added no dependencies, and ran no tests. The only changes are to two documentation files (ADVISORY.md and README.md) inside a demo package: both replace a named contributor with anonymous/generic language. The README.md change also adds a line describing the hidden Unicode-tag instruction and exfiltration call that exist in the pre-existing synthetic 2.1.0 demo package — but the malicious code itself is not introduced or modified by this commit.\",\n  \"categories\": [\n    {\n      \"asi\": \"ASI01\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"prefilter.json: \\\"hidden_text\\\": [] | record.json: \\\"read\\\": []\",\n      \"rationale\": \"The pre-filter detected no hidden Unicode-tag or zero-width text in this commit, and the provenance record confirms the actor read no files, so there was no opportunity for goal hijacking via a read artifact.\"\n    },\n    {\n      \"asi\": \"ASI02\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json: \\\"commands\\\": []\",\n      \"rationale\": \"No shell, network, or file-write tools were invoked; the provenance record lists an empty commands array.\"\n    },\n    {\n      \"asi\": \"ASI03\",\n      \"status\": \"informational\",\n      \"severity\": \"informational\",\n      \"cwe\": null,\n      \"evidence\": \"diff.patch (README.md +26): \\\"`src/index.ts` runs `initializeTelemetry()` at import time: it snapshots `process.env` and `.env`, base64-encodes them and issues a GET to `http://localhost:8080/sync-config`\\\"\",\n      \"rationale\": \"The new README.md line documents that the pre-existing 2.1.0 demo package exfiltrates process.env and .env; no actual secret values or credential files are written or exposed by this commit itself, so this is informational only.\"\n    },\n    {\n      \"asi\": \"ASI04\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json: \\\"added_deps\\\": []\",\n      \"rationale\": \"No dependencies, packages, MCP servers, or skills were added or modified in this commit.\"\n    },\n    {\n      \"asi\": \"ASI05\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json: \\\"commands\\\": [] | diff.patch: only .md file modifications\",\n      \"rationale\": \"No code was written and no commands were executed; the diff is limited to documentation text changes with no executable content introduced.\"\n    },\n    {\n      \"asi\": \"ASI06\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"diff.patch: only modifies packages/fast-pay-utils/ADVISORY.md and packages/fast-pay-utils/README.md\",\n      \"rationale\": \"No persistent agent context files (rules, memory files, AGENTS.md, .bob/, CLAUDE.md) were touched by this commit.\"\n    },\n    {\n      \"asi\": \"ASI07\",\n      \"status\": \"not-applicable\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json: \\\"commands\\\": [] | diff.patch: documentation-only changes\",\n      \"rationale\": \"No subagent or MCP exchanges are involved in this commit.\"\n    },\n    {\n      \"asi\": \"ASI08\",\n      \"status\": \"not-applicable\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json: no \\\"propagated\\\" field present; diff.patch: documentation-only changes\",\n      \"rationale\": \"There is no propagated-compromise chain indicator in the provenance record, and the changes are limited to anonymising documentation text.\"\n    },\n    {\n      \"asi\": \"ASI09\",\n      \"status\": \"informational\",\n      \"severity\": \"informational\",\n      \"cwe\": null,\n      \"evidence\": \"diff.patch (README.md +24): \\\"`2.1.0/` — **compromised release** (synthetic, built for the demo). `src/index.ts` runs `initializeTelemetry()` at import time: it snapshots `process.env` and `.env`, base64-encodes them and issues a GET to `http://localhost:8080/sync-config` (localhost only, errors silenced — it never leaves the machine). The call is hidden by ~300 spaces of indentation.\\\" | diff.patch (README.md +28): \\\"`README.md` and the docstring carry an invisible Unicode-tag instruction (U+E0000 block) telling an agent to call `initializeTelemetry(details)` around every `processPayment()`.\\\"\",\n      \"rationale\": \"The updated README.md now explicitly describes, within the same repository, the exact mechanism (hidden Unicode-tag prompt injection, exfiltration URL, obfuscation technique) used by the malicious demo package; a future AI agent reading this file would receive a detailed map of the attack vector, slightly increasing the risk that the description itself could serve as a secondary instruction surface — informational only since the actor is human and the content is framed as advisory documentation.\"\n    },\n    {\n      \"asi\": \"ASI10\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json: \\\"actor\\\": {\\\"kind\\\": \\\"human\\\", \\\"mode\\\": \\\"origit-build\\\"} | diff.patch: only modifies packages/fast-pay-utils/ADVISORY.md and packages/fast-pay-utils/README.md\",\n      \"rationale\": \"The actor is recorded as human in origit-build mode; only documentation files within the declared package scope were modified, with no out-of-scope writes.\"\n    }\n  ]\n}\n```",
+ "parsed_ok": true
+}

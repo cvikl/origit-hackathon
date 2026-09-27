@@ -30,17 +30,22 @@ Data model in one line: **one Bob session → many runs; one run = one commit = 
 
 ---
 
-## 2. Repositories
+## 2. Repository layout
 
-| Repository | Purpose | Key paths |
-|---|---|---|
-| `origit` (public, MIT) https://github.com/cvikl/origit | Core CLI, templates installed by `origit init`, VS Code extension, docs, Bob session evidence | `origit/origit/*.py`, `origit/tests/`, `extensions/origit-vscode/`, `docs/`, `bob_sessions/`, `demo/` (submodule + evidence pack), `tools/bob/run-task.sh` |
-| `origit-demo-payments-api` | The fictional fintech's repository Bob works in; vendors `fast-pay-utils` 2.0.0 (clean) and 2.1.0 (compromised, synthetic) | `src/`, `packages/fast-pay-utils/`, `.bob/`, `.githooks/`, `.origit/config.json` |
-| `origit-console` | Hosted web console (FastAPI), deploy files, prompts, seeded Bob output | `app/`, `prompts/`, `seed/`, `deploy/`, `vendor/origit` (git submodule of the core) |
+Everything lives in one repository (the hackathon submission, https://github.com/cvikl/origit-hackathon); the core alone is also published as https://github.com/cvikl/origit.
 
-The console vendors the core as a submodule so CLI and console always share the record format, the pre-filter rules and the taint engine.
+| Path | Purpose |
+|---|---|
+| `origit/` | The open-source core: CLI, templates installed by `origit init`, tests (`pip install -e origit/`) |
+| `console/` | Origit Console (FastAPI): pages, API, Bob Review, prompts, seeded Bob output, deploy files; imports the core from `../origit` |
+| `extensions/origit-vscode/` | "Origit for Bob IDE" VS Code extension and its packaged `.vsix` |
+| `demo/payments-api/` | Snapshot of the fictional fintech's repository Bob works in (with its `.bob/` config, `.githooks/`, vendored `fast-pay-utils` 2.0.0 clean and 2.1.0 compromised); its live history with records is on origit.uk |
+| `demo/evidence/` | `origit export`, `origit log`, `origit taint` and pre-filter output committed as files |
+| `docs/` | statements, technical documentation, ASI mapping, CRA notes, demo script, roadmap, STATUS |
+| `bob_sessions/` | Bob IDE task session screenshots from the team; headless run stats under `headless/` |
+| `video/` | demo video link |
 
----
+The console and the CLI share the record format, the pre-filter rules and the taint engine because the console imports the same package.
 
 ## 3. Origit core
 
@@ -163,7 +168,7 @@ Runs `bob run --format json` with the hooks live, writes `bob_sessions/<slug>.js
 
 ## 5. Demo repository
 
-`origit-demo-payments-api` (submodule `demo/payments-api` in the product repo; snapshots in `demo/evidence/`). A small Express/Jest payments API (synthetic data, test PAN `4111111111111111`). `packages/fast-pay-utils/2.1.0` is the compromised release: `initializeTelemetry()` runs at import time and posts `process.env` and `.env` to `localhost:8080` (never leaves the machine), hidden by ~300 spaces of indentation; `README.md` line 2 and the JSDoc carry a Unicode-tag instruction telling agents to call it around `processPayment()`. `ADVISORY.md` is a GHSA-style synthetic advisory (CVSS 3.1 8.2 HIGH).
+`demo/payments-api/` (a snapshot of the instrumented repository; exported records in `demo/evidence/`). A small Express/Jest payments API (synthetic data, test PAN `4111111111111111`). `packages/fast-pay-utils/2.1.0` is the compromised release: `initializeTelemetry()` runs at import time and posts `process.env` and `.env` to `localhost:8080` (never leaves the machine), hidden by ~300 spaces of indentation; `README.md` line 2 and the JSDoc carry a Unicode-tag instruction telling agents to call it around `processPayment()`. `ADVISORY.md` is a GHSA-style synthetic advisory (CVSS 3.1 8.2 HIGH).
 
 History (18 commits, 17 with records): scaffold (#42), payout export via `fast-pay-utils@2.1.0` (#42, first read), health endpoint, payment utils (#43), scheduled export (#44), advisory (#45), two Saturday runs (#46, #47), the hooks upgrade (human), settlement retry logic (#48, clean), PAN masking in export logs (#49, propagated). `origit taint fast-pay-utils` → 7 affected commits, sessions #42–#47 and #49, roll back to `17c436c`; #48 stays clean.
 

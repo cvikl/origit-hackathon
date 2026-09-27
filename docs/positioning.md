@@ -48,7 +48,7 @@ A GitHub-like web view of the repo with agent context visible. Bob lives here.
 ### 2.4 Positioning
 - "Agent provenance layer for git" (Bernard's wording). Never "we rewrote git".
 - Pedigree (May winner) signed the *output*. Origit records the *input*. One step earlier. Say this once.
-- Bob-native first, agent-agnostic by design (Claude Code, Cursor, Codex could emit the same trace via adapters). Do not say "works with any agent" in a way that makes Bob sound replaceable.
+- Bob-native first, agent-agnostic by design (Cursor, Codex and other coding agents could emit the same trace via adapters). Do not say "works with any agent" in a way that makes Bob sound replaceable.
 - Open-core, like git → GitHub. Free layer wins adoption; console is what a bank buys to prove what its agents did.
 - Language: OWASP ASI codes, CRA 24h clock, CVSS severity, evidence pack for SOC 2 / PCI. Fintech judges speak this.
 

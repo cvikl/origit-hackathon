@@ -1,0 +1,17 @@
+{% import "_icons.html" as ic %}
+<li class="crow">
+  <div class="crow-main">
+    <a class="crow-subject" href="/{{ repo.full_name }}/commit/{{ r.sha }}">{{ r.subject }}</a>
+    <div class="crow-meta">
+      <span class="avatar" aria-hidden="true">{{ r.author[:1] | upper }}</span><span class="crow-author">{{ r.author }}</span>
+      <span title="{{ r.date | ts }}">{{ r.date | ago }}</span>
+      {% if r.record %}<span class="sep"></span>
+        {% if r.record.actor.kind == 'human' %}<span>human</span>
+        {% else %}<span class="actor"><i class="dot dot-bob"></i>Bob IDE{% if r.record.actor.mode %} · {{ r.record.actor.mode }}{% endif %}</span><span class="mono session" title="session {{ r.record.session.id }}">{{ r.session_label or r.record.session.id[:7] }}</span>{% endif %}
+        <span>{{ r.record.read | length }} read · {{ r.record.wrote | length }} wrote{% if r.record.added_deps %} · {{ r.record.added_deps | length }} deps{% endif %}</span>
+      {% else %}<span class="sep"></span><span>no record</span>{% endif %}
+    </div>
+  </div>
+  <div class="crow-flag">{% if repo.plan != "enterprise" %}{% elif r.prefilter.needs_review %}<span class="tag sev-{{ r.max_severity }}" title="{{ r.reasons | join(', ') }}"><i class="dot"></i>{{ r.max_severity }}{% if r.reason %} · {{ r.reason }}{% endif %}</span>{% elif r.record %}<span class="tag tag-ok"><i class="dot"></i>clean</span>{% endif %}{% if r.evidence %}<span class="tag tag-ink">Bob</span>{% endif %}</div>
+  <a class="sha" href="/{{ repo.full_name }}/commit/{{ r.sha }}" title="{{ 'record hash verified' if r.verified else '' }}">{{ r.short }}</a>
+</li>

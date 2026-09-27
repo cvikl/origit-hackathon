@@ -1,0 +1,16 @@
+{% import "_icons.html" as ic %}
+<div class="repohead"><div class="wrap">
+  <div class="repohead-title">
+    {{ ic.icon('repo', 'muted') }}
+    <a href="/{{ repo.org }}">{{ repo.org }}</a><span class="slash">/</span><a class="strong" href="/{{ repo.full_name }}">{{ repo.name }}</a>
+    <span class="tag">Public</span>{% if repo.plan == "enterprise" %}<span class="tag tag-ent" title="Business plan: Bob Review on every push, OWASP ASI evidence, Article 14 drafts">Business</span>{% endif %}
+  </div>
+  <nav class="tabs" aria-label="Repository">
+    <a class="{{ 'selected' if tab == 'code' }}" href="/{{ repo.full_name }}" {% if tab == 'code' %}aria-current="page"{% endif %}>{{ ic.icon('code') }}Code</a>
+    <a class="{{ 'selected' if tab == 'commits' }}" href="/{{ repo.full_name }}/commits" {% if tab == 'commits' %}aria-current="page"{% endif %}>{{ ic.icon('commit') }}Commits <span class="counter">{{ repo.commits }}</span></a>
+    <a class="{{ 'selected' if tab == 'pushes' }}" href="/{{ repo.full_name }}/pushes" {% if tab == 'pushes' %}aria-current="page"{% endif %}>{{ ic.icon('upload') }}Pushes</a>
+    <a class="{{ 'selected' if tab == 'taint' }}" href="/{{ repo.full_name }}/taint" {% if tab == 'taint' %}aria-current="page"{% endif %}>{{ ic.icon('search') }}Taint</a>
+    {% if repo.plan == 'enterprise' %}<a class="{{ 'selected' if tab == 'security' }}" href="/{{ repo.full_name }}/security" {% if tab == 'security' %}aria-current="page"{% endif %}>{{ ic.icon('shield') }}Security</a>{% endif %}
+    <a href="/api/{{ repo.full_name }}/export">{{ ic.icon('download') }}Evidence pack</a>
+  </nav>
+</div></div>

@@ -1,0 +1,32 @@
+{% import "_icons.html" as ic %}
+<h4 class="sec">About</h4>
+<div class="card about">
+  <p class="{{ 'muted' if not repo.description }}">{{ repo.description or 'No description provided.' }}</p>
+  <ul class="links">
+    <li>{{ ic.icon('branch') }}<span><strong>{{ repo.branch or '–' }}</strong> default branch</span></li>
+    <li>{{ ic.icon('commit') }}<span><strong>{{ repo.commits }}</strong> commits, <strong>{{ side.n_agent }}</strong> by agents in <strong>{{ side.n_sessions }}</strong> sessions</span></li>
+    <li>{{ ic.icon('check-circle') }}<span><strong>{{ side.n_records }}</strong> Origit records, <strong>{{ side.n_reads }}</strong> reads traced</span></li>
+    <li>{{ ic.icon('upload') }}<span><strong>{{ side.n_pushes }}</strong> pushes{% if side.last_push %}, last {{ side.last_push.at | ago }}{% endif %}</span></li>
+    {% if repo.source and repo.source.startswith('http') %}<li>{{ ic.icon('globe') }}<span class="mono wrap-any">{{ repo.source }}</span></li>{% endif %}
+  </ul>
+</div>
+{% if side.agent_deps %}
+<h4 class="sec">{{ ic.icon('package') }}Dependencies added by agents <span class="counter">{{ side.agent_deps | length }}</span></h4>
+<div class="card"><div class="chips">{% for d in side.agent_deps %}<a href="/{{ repo.full_name }}/taint?q={{ d.split('@')[0] }}" class="mono" title="taint {{ d }}">{{ d }}</a>{% endfor %}</div><p class="muted small" style="margin:10px 0 0">Click one to taint it.</p></div>
+{% endif %}
+{% if side.languages %}
+<h4 class="sec">Languages</h4>
+<div class="card">
+  <div class="langbar">{% for l in side.languages %}<span style="width:{{ l.pct }}%;background:{{ l.color }}" title="{{ l.name }} {{ l.pct }}%"></span>{% endfor %}</div>
+  <ul class="langs">{% for l in side.languages[:5] %}<li><i class="dot" style="background:{{ l.color }}"></i>{{ l.name }} <span class="muted">{{ l.pct }}%</span></li>{% endfor %}</ul>
+</div>
+{% endif %}
+<h4 class="sec">{{ ic.icon('people') }}Contributors <span class="counter">{{ side.contributors | length }}</span></h4>
+<div class="card">
+  <ul class="contribs">{% for c in side.contributors %}<li><span class="avatar {{ 'avatar-agent' if c.kind == 'agent' }}" aria-hidden="true">{{ c.name[:1] | upper }}</span><span class="contrib-name">{{ c.name }}</span><span class="muted small">{{ 'agent' if c.kind == 'agent' else 'human' }} · {{ c.commits }} commit{{ 's' if c.commits != 1 }}</span></li>{% endfor %}</ul>
+</div>
+<h4 class="sec">How records arrive</h4>
+<div class="card">
+  <p class="small" style="margin:0">Developers and CI push branches together with <span class="mono">refs/notes/origit</span>. Every push is pre-filtered on arrival and, on the Business plan, each new commit with a record is handed to IBM Bob for cited evidence.</p>
+  {% if settings.readonly %}<p class="muted small" style="margin:10px 0 0">This is a read-only demo of {{ settings.demo_account or repo.org }}'s workspace.</p>{% endif %}
+</div>

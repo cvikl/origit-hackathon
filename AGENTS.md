@@ -11,7 +11,7 @@ stored in `refs/notes/origit`, queryable with `origit taint <package|file|sha256
   Bob hooks, `origit-build` + `origit-review` modes, `mcp.json`, `skills/origit`).
 - `extensions/origit-vscode/` VS Code extension for Bob IDE (ORIGIT view in Source Control); no logic, reads `origit … --json`.
 - `origit/tests/` acceptance tests. A task is done when its test file passes.
-- `console/` web console (Sunday). `demo/payments-api/` is a git submodule (separate repo `origit-demo-payments-api`, do not edit it from here). `docs/` statements and STATUS.md.
+- `console/` the hosted console (FastAPI; imports the core from `../origit`). `demo/payments-api/` is a snapshot of the instrumented demo repository (its live history with records is on origit.uk). `docs/` statements, technical documentation and STATUS.md.
 
 ## Commands
 - Install: `cd origit && python3 -m venv .venv && .venv/bin/pip install -e ".[dev]"`

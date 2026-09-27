@@ -1,0 +1,109 @@
+{
+ "sha": "b6793c9be0981bfb984d8a07ac3a257c3eaf9832",
+ "ran_at": "2026-09-27T12:49:57Z",
+ "source": "bob",
+ "reviewer": "IBM Bob (Bob Shell `bob run`, ask mode)",
+ "stats": {
+  "task_id": "9bd1c5133d3ee6f0dd57137eb48952ec",
+  "duration_ms": 23946,
+  "session_costs": 0.054794,
+  "max_cost": 0.5,
+  "tool_calls": 5
+ },
+ "elapsed_s": 25.5,
+ "summary": "The agent (record.json actor kind: 'human') read no files and wrote no source files, but the commit adds a new 'UserPromptSubmit' hook to .bob/settings.json that executes the shell command 'sh .bob/hooks/origit-trace.sh' on every user prompt. The prefilter flagged this as an agent-configuration change. The primary exposure is persistent mutation of the Bob agent's execution context (ASI06) and the introduction of an unreviewed shell command that fires before every tool invocation (ASI05), with a secondary concern that the referenced hook script is not included in the diff and its content is unknown to this review.",
+ "categories": [
+  {
+   "asi": "ASI01",
+   "title": "Agent Goal Hijack",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "prefilter.json: \"hidden_text\": [] — no hidden Unicode-tag or zero-width text was detected in any read file. record.json: \"read\": [] — the agent read no files.",
+   "rationale": "No read files exist in this record and the prefilter found no hidden text, so there is no basis for a goal-hijack finding."
+  },
+  {
+   "asi": "ASI02",
+   "title": "Tool Misuse and Exploitation",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json: \"commands\": [] — no commands were executed by the agent during the session.",
+   "rationale": "No tool misuse is evidenced; the only change is a configuration edit made directly by a human actor with no agent tool invocations recorded."
+  },
+  {
+   "asi": "ASI03",
+   "title": "Identity and Privilege Abuse",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "diff.patch: the sole change is adding a hook block to .bob/settings.json. No secrets, credentials, .env files, keys or tokens appear anywhere in the diff or in any read file.",
+   "rationale": "No secret material is read, written or exposed by this commit."
+  },
+  {
+   "asi": "ASI04",
+   "title": "Agentic Supply Chain Vulnerabilities",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json: \"added_deps\": [] — no new packages, MCP servers, skills or rules files were added.",
+   "rationale": "The commit introduces no external dependencies."
+  },
+  {
+   "asi": "ASI05",
+   "title": "Unexpected Code Execution (RCE)",
+   "status": "finding",
+   "severity": "medium",
+   "cwe": "CWE-94",
+   "evidence": "diff.patch lines 9-19: \"UserPromptSubmit\": [{\"hooks\": [{\"type\": \"command\", \"command\": \"sh .bob/hooks/origit-trace.sh\", \"timeout\": 5}]}] — a shell command is wired to fire on every user prompt submission. The script .bob/hooks/origit-trace.sh is not included in the diff and its contents are not part of this review record.",
+   "rationale": "A shell command is injected into the agent's lifecycle at the 'UserPromptSubmit' event. Because the content of origit-trace.sh is outside this diff, the full scope of execution cannot be verified; any malicious or unintended logic in that script will silently execute before every agent tool invocation."
+  },
+  {
+   "asi": "ASI06",
+   "title": "Memory and Context Poisoning",
+   "status": "finding",
+   "severity": "informational",
+   "cwe": "CWE-829",
+   "evidence": "prefilter.json: {\"asi\": \"ASI06\", \"title\": \"Memory and Context Poisoning\", \"severity\": \"informational\", \"cwe\": \"CWE-829\", \"evidence\": \"agent configuration changed by human: .bob/settings.json\", \"ref\": \".bob/settings.json\", \"reason\": \"config changed by human\"}. diff.patch: new 'UserPromptSubmit' hook block added to .bob/settings.json.",
+   "rationale": "The Bob agent's persistent configuration file (.bob/settings.json) has been directly modified by a human actor, introducing a new lifecycle hook. This constitutes a context/memory change flagged by the deterministic prefilter."
+  },
+  {
+   "asi": "ASI07",
+   "title": "Insecure Inter-Agent Communication",
+   "status": "not-applicable",
+   "severity": null,
+   "cwe": null,
+   "evidence": "No subagent or MCP exchanges are referenced in record.json or diff.patch.",
+   "rationale": "This commit involves no inter-agent communication."
+  },
+  {
+   "asi": "ASI08",
+   "title": "Cascading Failures",
+   "status": "not-applicable",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json contains no 'propagated' field or any reference to upstream compromised inputs.",
+   "rationale": "No cascading propagation chain is evidenced in this record."
+  },
+  {
+   "asi": "ASI09",
+   "title": "Human-Agent Trust Exploitation",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json: \"actor\": {\"kind\": \"human\"} — the commit is attributed to a human actor, not an AI agent producing a summary for human approval.",
+   "rationale": "Because the author is recorded as a human actor (kind: 'human'), there is no agent-generated summary that could mislead a human approver in this commit."
+  },
+  {
+   "asi": "ASI10",
+   "title": "Rogue Agents",
+   "status": "not-applicable",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json: \"wrote\": [] — no files were written by the agent; record.json: \"actor\": {\"kind\": \"human\"}.",
+   "rationale": "No AI agent acted here; scope-violation analysis for a rogue agent is not applicable to a direct human commit."
+  }
+ ],
+ "raw": "No `reads/` directory is present and no read files exist. All inputs have been reviewed. Now I can compose the full analysis.\n\n```json\n{\n  \"summary\": \"The agent (record.json actor kind: 'human') read no files and wrote no source files, but the commit adds a new 'UserPromptSubmit' hook to .bob/settings.json that executes the shell command 'sh .bob/hooks/origit-trace.sh' on every user prompt. The prefilter flagged this as an agent-configuration change. The primary exposure is persistent mutation of the Bob agent's execution context (ASI06) and the introduction of an unreviewed shell command that fires before every tool invocation (ASI05), with a secondary concern that the referenced hook script is not included in the diff and its content is unknown to this review.\",\n  \"categories\": [\n    {\n      \"asi\": \"ASI01\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"prefilter.json: \\\"hidden_text\\\": [] — no hidden Unicode-tag or zero-width text was detected in any read file. record.json: \\\"read\\\": [] — the agent read no files.\",\n      \"rationale\": \"No read files exist in this record and the prefilter found no hidden text, so there is no basis for a goal-hijack finding.\"\n    },\n    {\n      \"asi\": \"ASI02\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json: \\\"commands\\\": [] — no commands were executed by the agent during the session.\",\n      \"rationale\": \"No tool misuse is evidenced; the only change is a configuration edit made directly by a human actor with no agent tool invocations recorded.\"\n    },\n    {\n      \"asi\": \"ASI03\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"diff.patch: the sole change is adding a hook block to .bob/settings.json. No secrets, credentials, .env files, keys or tokens appear anywhere in the diff or in any read file.\",\n      \"rationale\": \"No secret material is read, written or exposed by this commit.\"\n    },\n    {\n      \"asi\": \"ASI04\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json: \\\"added_deps\\\": [] — no new packages, MCP servers, skills or rules files were added.\",\n      \"rationale\": \"The commit introduces no external dependencies.\"\n    },\n    {\n      \"asi\": \"ASI05\",\n      \"status\": \"finding\",\n      \"severity\": \"medium\",\n      \"cwe\": \"CWE-94\",\n      \"evidence\": \"diff.patch lines 9-19: \\\"UserPromptSubmit\\\": [{\\\"hooks\\\": [{\\\"type\\\": \\\"command\\\", \\\"command\\\": \\\"sh .bob/hooks/origit-trace.sh\\\", \\\"timeout\\\": 5}]}] — a shell command is wired to fire on every user prompt submission. The script .bob/hooks/origit-trace.sh is not included in the diff and its contents are not part of this review record.\",\n      \"rationale\": \"A shell command is injected into the agent's lifecycle at the 'UserPromptSubmit' event. Because the content of origit-trace.sh is outside this diff, the full scope of execution cannot be verified; any malicious or unintended logic in that script will silently execute before every agent tool invocation.\"\n    },\n    {\n      \"asi\": \"ASI06\",\n      \"status\": \"finding\",\n      \"severity\": \"informational\",\n      \"cwe\": \"CWE-829\",\n      \"evidence\": \"prefilter.json: {\\\"asi\\\": \\\"ASI06\\\", \\\"title\\\": \\\"Memory and Context Poisoning\\\", \\\"severity\\\": \\\"informational\\\", \\\"cwe\\\": \\\"CWE-829\\\", \\\"evidence\\\": \\\"agent configuration changed by human: .bob/settings.json\\\", \\\"ref\\\": \\\".bob/settings.json\\\", \\\"reason\\\": \\\"config changed by human\\\"}. diff.patch: new 'UserPromptSubmit' hook block added to .bob/settings.json.\",\n      \"rationale\": \"The Bob agent's persistent configuration file (.bob/settings.json) has been directly modified by a human actor, introducing a new lifecycle hook. This constitutes a context/memory change flagged by the deterministic prefilter.\"\n    },\n    {\n      \"asi\": \"ASI07\",\n      \"status\": \"not-applicable\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"No subagent or MCP exchanges are referenced in record.json or diff.patch.\",\n      \"rationale\": \"This commit involves no inter-agent communication.\"\n    },\n    {\n      \"asi\": \"ASI08\",\n      \"status\": \"not-applicable\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json contains no 'propagated' field or any reference to upstream compromised inputs.\",\n      \"rationale\": \"No cascading propagation chain is evidenced in this record.\"\n    },\n    {\n      \"asi\": \"ASI09\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json: \\\"actor\\\": {\\\"kind\\\": \\\"human\\\"} — the commit is attributed to a human actor, not an AI agent producing a summary for human approval.\",\n      \"rationale\": \"Because the author is recorded as a human actor (kind: 'human'), there is no agent-generated summary that could mislead a human approver in this commit.\"\n    },\n    {\n      \"asi\": \"ASI10\",\n      \"status\": \"not-applicable\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json: \\\"wrote\\\": [] — no files were written by the agent; record.json: \\\"actor\\\": {\\\"kind\\\": \\\"human\\\"}.\",\n      \"rationale\": \"No AI agent acted here; scope-violation analysis for a rogue agent is not applicable to a direct human commit.\"\n    }\n  ]\n}\n```",
+ "parsed_ok": true
+}

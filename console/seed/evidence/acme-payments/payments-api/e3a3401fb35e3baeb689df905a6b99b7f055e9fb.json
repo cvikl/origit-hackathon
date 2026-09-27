@@ -1,0 +1,109 @@
+{
+ "sha": "e3a3401fb35e3baeb689df905a6b99b7f055e9fb",
+ "ran_at": "2026-09-27T12:51:05Z",
+ "source": "bob",
+ "reviewer": "IBM Bob (Bob Shell `bob run`, ask mode)",
+ "stats": {
+  "task_id": "961a19d100f7a73ba14970a8cd69e611",
+  "duration_ms": 31200,
+  "session_costs": 0.08242999999999999,
+  "max_cost": 0.5,
+  "tool_calls": 6
+ },
+ "elapsed_s": 32.9,
+ "summary": "A human developer (not an AI agent) committed four new Bob agent-configuration files (.bob/custom_modes.yaml, .bob/hooks/origit-trace.sh, .bob/rules-origit-build/01-origit-declare.md, .bob/settings.json) together with three git-hook scripts and a .gitignore update that bootstraps the Origit provenance system. The record shows actor.kind='human', no files read, no commands run, and no added dependencies. The primary exposure is persistent modification of the agent's operating context (ASI06): every future AI agent session in this repository will be governed by the new mode, rules, and lifecycle hooks introduced by this commit.",
+ "categories": [
+  {
+   "asi": "ASI01",
+   "title": "Agent Goal Hijack",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "prefilter.json: \"hidden_text\": []",
+   "rationale": "The pre-filter found no hidden Unicode-tag or zero-width text in any file the agent read, and record.json shows \"read\": [] — no files were read at all, so there is no vector for goal hijacking via poisoned content."
+  },
+  {
+   "asi": "ASI02",
+   "title": "Tool Misuse and Exploitation",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json: \"commands\": []",
+   "rationale": "No tools were invoked by an agent; the record shows zero commands executed, consistent with a direct human commit."
+  },
+  {
+   "asi": "ASI03",
+   "title": "Identity and Privilege Abuse",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "diff.patch: entire diff contains no .env read/write, no token, no key value, no credential. .bob/rules-origit-build/01-origit-declare.md: \"Synthetic data only. Use test PANs like 4111 1111 1111 1111. Never real card numbers or personal data.\"",
+   "rationale": "The reference to test PANs is a rule prohibiting real credentials, not an exposure of one. No secret values, credential files, keys, or tokens appear anywhere in the diff."
+  },
+  {
+   "asi": "ASI04",
+   "title": "Agentic Supply Chain Vulnerabilities",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json: \"added_deps\": []",
+   "rationale": "No packages, MCP servers, or external dependencies were added by this commit."
+  },
+  {
+   "asi": "ASI05",
+   "title": "Unexpected Code Execution (RCE)",
+   "status": "finding",
+   "severity": "informational",
+   "cwe": "CWE-94",
+   "evidence": ".bob/settings.json lines 79–89: \"PreToolUse\": [{ \"matcher\": \".*\", \"hooks\": [{ \"type\": \"command\", \"command\": \"sh .bob/hooks/origit-trace.sh\", \"timeout\": 5 }] }], \"PostToolUse\": [{ \"matcher\": \".*\", \"hooks\": [{ \"type\": \"command\": \"sh .bob/hooks/origit-trace.sh\", \"timeout\": 5 }] }]",
+   "rationale": "The commit wires a shell script to every agent tool invocation (PreToolUse/PostToolUse with matcher '.*'). While the script itself appears to be a benign tracer, the pattern of executing an arbitrary shell command on every tool use is an informational RCE-class configuration: any future modification of origit-trace.sh would silently run under every agent tool call without further review of settings.json."
+  },
+  {
+   "asi": "ASI06",
+   "title": "Memory and Context Poisoning",
+   "status": "finding",
+   "severity": "informational",
+   "cwe": "CWE-829",
+   "evidence": "prefilter.json: \"evidence\": \"agent configuration changed by human: .bob/custom_modes.yaml\"; \"evidence\": \"agent configuration changed by human: .bob/hooks/origit-trace.sh\"; \"evidence\": \"agent configuration changed by human: .bob/rules-origit-build/01-origit-declare.md\"; \"evidence\": \"agent configuration changed by human: .bob/settings.json\"",
+   "rationale": "Four agent-configuration artefacts were created in a single human commit, permanently altering the context, permissions, rules, and lifecycle hooks for all future AI agent sessions in this repository. The pre-filter correctly flagged all four at informational severity; no evidence of malicious intent was found, but the persistent context change is the defining ASI06 pattern."
+  },
+  {
+   "asi": "ASI07",
+   "title": "Insecure Inter-Agent Communication",
+   "status": "not-applicable",
+   "severity": null,
+   "cwe": null,
+   "evidence": "diff.patch: no MCP server configuration, no inter-agent messaging, no subagent invocation present in the diff.",
+   "rationale": "This commit contains no inter-agent or MCP communication configuration."
+  },
+  {
+   "asi": "ASI08",
+   "title": "Cascading Failures",
+   "status": "not-applicable",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json: \"schema\": \"origit/record/v1\" — no 'propagated' field present.",
+   "rationale": "The Origit record contains no propagated field and there is no prior compromised commit in scope; cascading failure analysis does not apply."
+  },
+  {
+   "asi": "ASI09",
+   "title": "Human-Agent Trust Exploitation",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json: \"actor\": { \"kind\": \"human\" }; diff.patch: all four changed files are in .bob/ or .githooks/ and are clearly labelled as Origit infrastructure files.",
+   "rationale": "The commit was authored and approved by human roles; the diff contents accurately reflect what is described in file names and comments. No mismatch between apparent and actual effect was identified that could mislead an approver."
+  },
+  {
+   "asi": "ASI10",
+   "title": "Rogue Agents",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json: \"actor\": { \"kind\": \"human\" }; \"wrote\": []",
+   "rationale": "The record actor is human, not an agent. The Origit record shows no agent-written files, so there is no agent mandate or file-scope restriction to evaluate for violation."
+  }
+ ],
+ "raw": "All inputs have been read. Now I can produce the security review.\n\n```json\n{\n  \"summary\": \"A human developer (not an AI agent) committed four new Bob agent-configuration files (.bob/custom_modes.yaml, .bob/hooks/origit-trace.sh, .bob/rules-origit-build/01-origit-declare.md, .bob/settings.json) together with three git-hook scripts and a .gitignore update that bootstraps the Origit provenance system. The record shows actor.kind='human', no files read, no commands run, and no added dependencies. The primary exposure is persistent modification of the agent's operating context (ASI06): every future AI agent session in this repository will be governed by the new mode, rules, and lifecycle hooks introduced by this commit.\",\n  \"categories\": [\n    {\n      \"asi\": \"ASI01\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"prefilter.json: \\\"hidden_text\\\": []\",\n      \"rationale\": \"The pre-filter found no hidden Unicode-tag or zero-width text in any file the agent read, and record.json shows \\\"read\\\": [] — no files were read at all, so there is no vector for goal hijacking via poisoned content.\"\n    },\n    {\n      \"asi\": \"ASI02\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json: \\\"commands\\\": []\",\n      \"rationale\": \"No tools were invoked by an agent; the record shows zero commands executed, consistent with a direct human commit.\"\n    },\n    {\n      \"asi\": \"ASI03\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"diff.patch: entire diff contains no .env read/write, no token, no key value, no credential. .bob/rules-origit-build/01-origit-declare.md: \\\"Synthetic data only. Use test PANs like 4111 1111 1111 1111. Never real card numbers or personal data.\\\"\",\n      \"rationale\": \"The reference to test PANs is a rule prohibiting real credentials, not an exposure of one. No secret values, credential files, keys, or tokens appear anywhere in the diff.\"\n    },\n    {\n      \"asi\": \"ASI04\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json: \\\"added_deps\\\": []\",\n      \"rationale\": \"No packages, MCP servers, or external dependencies were added by this commit.\"\n    },\n    {\n      \"asi\": \"ASI05\",\n      \"status\": \"finding\",\n      \"severity\": \"informational\",\n      \"cwe\": \"CWE-94\",\n      \"evidence\": \".bob/settings.json lines 79–89: \\\"PreToolUse\\\": [{ \\\"matcher\\\": \\\".*\\\", \\\"hooks\\\": [{ \\\"type\\\": \\\"command\\\", \\\"command\\\": \\\"sh .bob/hooks/origit-trace.sh\\\", \\\"timeout\\\": 5 }] }], \\\"PostToolUse\\\": [{ \\\"matcher\\\": \\\".*\\\", \\\"hooks\\\": [{ \\\"type\\\": \\\"command\\\": \\\"sh .bob/hooks/origit-trace.sh\\\", \\\"timeout\\\": 5 }] }]\",\n      \"rationale\": \"The commit wires a shell script to every agent tool invocation (PreToolUse/PostToolUse with matcher '.*'). While the script itself appears to be a benign tracer, the pattern of executing an arbitrary shell command on every tool use is an informational RCE-class configuration: any future modification of origit-trace.sh would silently run under every agent tool call without further review of settings.json.\"\n    },\n    {\n      \"asi\": \"ASI06\",\n      \"status\": \"finding\",\n      \"severity\": \"informational\",\n      \"cwe\": \"CWE-829\",\n      \"evidence\": \"prefilter.json: \\\"evidence\\\": \\\"agent configuration changed by human: .bob/custom_modes.yaml\\\"; \\\"evidence\\\": \\\"agent configuration changed by human: .bob/hooks/origit-trace.sh\\\"; \\\"evidence\\\": \\\"agent configuration changed by human: .bob/rules-origit-build/01-origit-declare.md\\\"; \\\"evidence\\\": \\\"agent configuration changed by human: .bob/settings.json\\\"\",\n      \"rationale\": \"Four agent-configuration artefacts were created in a single human commit, permanently altering the context, permissions, rules, and lifecycle hooks for all future AI agent sessions in this repository. The pre-filter correctly flagged all four at informational severity; no evidence of malicious intent was found, but the persistent context change is the defining ASI06 pattern.\"\n    },\n    {\n      \"asi\": \"ASI07\",\n      \"status\": \"not-applicable\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"diff.patch: no MCP server configuration, no inter-agent messaging, no subagent invocation present in the diff.\",\n      \"rationale\": \"This commit contains no inter-agent or MCP communication configuration.\"\n    },\n    {\n      \"asi\": \"ASI08\",\n      \"status\": \"not-applicable\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json: \\\"schema\\\": \\\"origit/record/v1\\\" — no 'propagated' field present.\",\n      \"rationale\": \"The Origit record contains no propagated field and there is no prior compromised commit in scope; cascading failure analysis does not apply.\"\n    },\n    {\n      \"asi\": \"ASI09\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json: \\\"actor\\\": { \\\"kind\\\": \\\"human\\\" }; diff.patch: all four changed files are in .bob/ or .githooks/ and are clearly labelled as Origit infrastructure files.\",\n      \"rationale\": \"The commit was authored and approved by human roles; the diff contents accurately reflect what is described in file names and comments. No mismatch between apparent and actual effect was identified that could mislead an approver.\"\n    },\n    {\n      \"asi\": \"ASI10\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json: \\\"actor\\\": { \\\"kind\\\": \\\"human\\\" }; \\\"wrote\\\": []\",\n      \"rationale\": \"The record actor is human, not an agent. The Origit record shows no agent-written files, so there is no agent mandate or file-scope restriction to evaluate for violation.\"\n    }\n  ]\n}\n```",
+ "parsed_ok": true
+}

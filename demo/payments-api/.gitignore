@@ -1,0 +1,16 @@
+node_modules/
+dist/
+!packages/**/dist/
+coverage/
+.env
+.env.*
+!.env.example
+# origit runtime state (folded into git notes)
+.origit/
+# origit runtime state
+.origit/trace.jsonl
+.origit/pending-record.json
+# origit runtime state
+.origit/session.json
+.origit/runs/
+.origit/*.log

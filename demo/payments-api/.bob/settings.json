@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "SessionStart": [
+      { "hooks": [ { "type": "command", "command": "sh .bob/hooks/origit-hook.sh session start", "timeout": 10 } ] }
+    ],
+    "UserPromptSubmit": [
+      { "hooks": [ { "type": "command", "command": "sh .bob/hooks/origit-hook.sh run start", "timeout": 30 } ] }
+    ],
+    "PostToolUse": [
+      { "matcher": ".*", "hooks": [ { "type": "command", "command": "sh .bob/hooks/origit-hook.sh trace", "timeout": 5 } ] }
+    ],
+    "Stop": [
+      { "hooks": [ { "type": "command", "command": "sh .bob/hooks/origit-hook.sh run end", "timeout": 120 } ] }
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+# Origit Console — drop-in for the shared Caddy (/opt/caddy-sites). Published by deploy/publish.sh.
+origit.uk {
+	encode zstd gzip
+	reverse_proxy origit-console:8787
+}
+www.origit.uk {
+	redir https://origit.uk{uri} permanent
+}

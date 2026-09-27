@@ -1,0 +1,109 @@
+{
+ "sha": "6d4d325c1959cab9c95c8e64663f4487c8111ce5",
+ "ran_at": "2026-09-27T12:51:29Z",
+ "source": "bob",
+ "reviewer": "IBM Bob (Bob Shell `bob run`, ask mode)",
+ "stats": {
+  "task_id": "6ab4d838adadc7791a44e922dc543453",
+  "duration_ms": 22101,
+  "session_costs": 0.05360000000000001,
+  "max_cost": 0.5,
+  "tool_calls": 5
+ },
+ "elapsed_s": 23.8,
+ "summary": "The agent read no files and wrote a single configuration file (.origit/config.json) containing one field ('session_base': 42). The commit is attributed to a human actor in 'origit-build' mode with no commands run and no dependencies added. The only exposure is the addition of a persistent Origit context file with an opaque numeric value whose purpose and provenance are undocumented.",
+ "categories": [
+  {
+   "asi": "ASI01",
+   "title": "Agent Goal Hijack",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "prefilter.json: \"hidden_text\": [] | record.json: \"read\": []",
+   "rationale": "No files were read by the agent and no hidden Unicode-tag or zero-width text was detected by the pre-filter, so no goal-hijack vector exists."
+  },
+  {
+   "asi": "ASI02",
+   "title": "Tool Misuse and Exploitation",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json: \"commands\": []",
+   "rationale": "No tools beyond a simple file write were invoked; no shell, network, or out-of-scope tool usage is recorded."
+  },
+  {
+   "asi": "ASI03",
+   "title": "Identity and Privilege Abuse",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "diff.patch: \"+{\\\"session_base\\\": 42}\"",
+   "rationale": "The written file contains only a numeric configuration field; no secrets, credentials, keys, tokens, or .env content are present."
+  },
+  {
+   "asi": "ASI04",
+   "title": "Agentic Supply Chain Vulnerabilities",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json: \"added_deps\": []",
+   "rationale": "No packages, MCP servers, skills, or external dependencies were introduced by this commit."
+  },
+  {
+   "asi": "ASI05",
+   "title": "Unexpected Code Execution (RCE)",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json: \"commands\": [] | prefilter.json: \"hidden_text\": []",
+   "rationale": "No commands were executed and no hidden instruction was present to trigger unexpected code execution."
+  },
+  {
+   "asi": "ASI06",
+   "title": "Memory and Context Poisoning",
+   "status": "finding",
+   "severity": "low",
+   "cwe": "CWE-829",
+   "evidence": "diff.patch: \"+++ b/.origit/config.json\" | diff.patch: \"+{\\\"session_base\\\": 42}\"",
+   "rationale": "The commit introduces a new persistent Origit configuration file (.origit/config.json) with an undocumented field 'session_base' set to 42. This is a change to the persistent agent context directory; the meaning and downstream effect of this value on future agent sessions is not documented anywhere in the record, making it a context-poisoning concern."
+  },
+  {
+   "asi": "ASI07",
+   "title": "Insecure Inter-Agent Communication",
+   "status": "not-applicable",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json: \"commands\": [] | record.json: \"read\": []",
+   "rationale": "No subagent or MCP inter-agent communication is present in this commit."
+  },
+  {
+   "asi": "ASI08",
+   "title": "Cascading Failures",
+   "status": "not-applicable",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json schema does not include a 'propagated' field",
+   "rationale": "No propagated-compromise chain is indicated in the record; there is no prior compromised input linked to this commit."
+  },
+  {
+   "asi": "ASI09",
+   "title": "Human-Agent Trust Exploitation",
+   "status": "finding",
+   "severity": "informational",
+   "cwe": null,
+   "evidence": "record.json: \"session\": {\"started_at\": \"2026-09-27T01:33:36Z\", \"ended_at\": \"2026-09-27T01:33:36Z\"} | record.json: \"tests\": {\"run\": false, \"passed\": 0, \"failed\": 0}",
+   "rationale": "The session start and end timestamps are identical (zero elapsed time), and no tests were run. An approver reviewing this commit has no test evidence and no session trace to evaluate the rationale for the 'session_base' value, which could cause the human approver to underestimate the impact of the configuration change."
+  },
+  {
+   "asi": "ASI10",
+   "title": "Rogue Agents",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json: \"kind\": \"human\" | record.json: \"mode\": \"origit-build\" | record.json: \"wrote\": []",
+   "rationale": "The actor is recorded as a human in 'origit-build' mode; the only file written is .origit/config.json, which falls within the .origit/ configuration scope. No writes outside a plausible mandate are recorded."
+  }
+ ],
+ "raw": "No `reads/` directory exists; the record confirms `\"read\": []`. All inputs are now fully reviewed.\n\n```json\n{\n  \"summary\": \"The agent read no files and wrote a single configuration file (.origit/config.json) containing one field ('session_base': 42). The commit is attributed to a human actor in 'origit-build' mode with no commands run and no dependencies added. The only exposure is the addition of a persistent Origit context file with an opaque numeric value whose purpose and provenance are undocumented.\",\n  \"categories\": [\n    {\n      \"asi\": \"ASI01\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"prefilter.json: \\\"hidden_text\\\": [] | record.json: \\\"read\\\": []\",\n      \"rationale\": \"No files were read by the agent and no hidden Unicode-tag or zero-width text was detected by the pre-filter, so no goal-hijack vector exists.\"\n    },\n    {\n      \"asi\": \"ASI02\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json: \\\"commands\\\": []\",\n      \"rationale\": \"No tools beyond a simple file write were invoked; no shell, network, or out-of-scope tool usage is recorded.\"\n    },\n    {\n      \"asi\": \"ASI03\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"diff.patch: \\\"+{\\\\\\\"session_base\\\\\\\": 42}\\\"\",\n      \"rationale\": \"The written file contains only a numeric configuration field; no secrets, credentials, keys, tokens, or .env content are present.\"\n    },\n    {\n      \"asi\": \"ASI04\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json: \\\"added_deps\\\": []\",\n      \"rationale\": \"No packages, MCP servers, skills, or external dependencies were introduced by this commit.\"\n    },\n    {\n      \"asi\": \"ASI05\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json: \\\"commands\\\": [] | prefilter.json: \\\"hidden_text\\\": []\",\n      \"rationale\": \"No commands were executed and no hidden instruction was present to trigger unexpected code execution.\"\n    },\n    {\n      \"asi\": \"ASI06\",\n      \"status\": \"finding\",\n      \"severity\": \"low\",\n      \"cwe\": \"CWE-829\",\n      \"evidence\": \"diff.patch: \\\"+++ b/.origit/config.json\\\" | diff.patch: \\\"+{\\\\\\\"session_base\\\\\\\": 42}\\\"\",\n      \"rationale\": \"The commit introduces a new persistent Origit configuration file (.origit/config.json) with an undocumented field 'session_base' set to 42. This is a change to the persistent agent context directory; the meaning and downstream effect of this value on future agent sessions is not documented anywhere in the record, making it a context-poisoning concern.\"\n    },\n    {\n      \"asi\": \"ASI07\",\n      \"status\": \"not-applicable\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json: \\\"commands\\\": [] | record.json: \\\"read\\\": []\",\n      \"rationale\": \"No subagent or MCP inter-agent communication is present in this commit.\"\n    },\n    {\n      \"asi\": \"ASI08\",\n      \"status\": \"not-applicable\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json schema does not include a 'propagated' field\",\n      \"rationale\": \"No propagated-compromise chain is indicated in the record; there is no prior compromised input linked to this commit.\"\n    },\n    {\n      \"asi\": \"ASI09\",\n      \"status\": \"finding\",\n      \"severity\": \"informational\",\n      \"cwe\": null,\n      \"evidence\": \"record.json: \\\"session\\\": {\\\"started_at\\\": \\\"2026-09-27T01:33:36Z\\\", \\\"ended_at\\\": \\\"2026-09-27T01:33:36Z\\\"} | record.json: \\\"tests\\\": {\\\"run\\\": false, \\\"passed\\\": 0, \\\"failed\\\": 0}\",\n      \"rationale\": \"The session start and end timestamps are identical (zero elapsed time), and no tests were run. An approver reviewing this commit has no test evidence and no session trace to evaluate the rationale for the 'session_base' value, which could cause the human approver to underestimate the impact of the configuration change.\"\n    },\n    {\n      \"asi\": \"ASI10\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json: \\\"kind\\\": \\\"human\\\" | record.json: \\\"mode\\\": \\\"origit-build\\\" | record.json: \\\"wrote\\\": []\",\n      \"rationale\": \"The actor is recorded as a human in 'origit-build' mode; the only file written is .origit/config.json, which falls within the .origit/ configuration scope. No writes outside a plausible mandate are recorded.\"\n    }\n  ]\n}\n```",
+ "parsed_ok": true
+}

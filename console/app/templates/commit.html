@@ -1,0 +1,86 @@
+{% extends "base.html" %}{% import "_icons.html" as ic %}{% block title %}{{ c.short }} · {{ repo.full_name }} · Origit Console{% endblock %}
+{% block repohead %}{% include "_repohead.html" %}{% endblock %}
+{% block content %}
+<section class="commithead">
+  <h2>{{ c.subject }}</h2>
+  {% if c.body %}<pre class="commit-body">{{ c.body }}</pre>{% endif %}
+  <div class="crow-meta">
+    <span class="avatar" aria-hidden="true">{{ c.author[:1] | upper }}</span><span class="crow-author">{{ c.author }}</span><span>committed {{ c.date | ts }}</span>
+    <span class="sep"></span><span class="mono wrap-any">{{ c.sha }}</span>
+    {% if c.parents %}<span class="sep"></span><span>parent {% for p in c.parents %}<a class="mono" href="/{{ repo.full_name }}/commit/{{ p }}">{{ p[:7] }}</a>{% endfor %}</span>{% endif %}
+  </div>
+</section>
+
+{% if not c.record %}
+<div class="card" style="margin-top:16px"><h3>No Origit record</h3><p class="muted" style="margin:6px 0 0">This commit predates <code>origit init</code> or was made outside the hooks. Nothing is known about what was read before it. Origit adopts existing history without rewriting it.</p></div>
+{% else %}{% set rec = c.record %}
+{% if pf.hidden and repo.plan == "enterprise" %}
+<section class="flash" role="alert">{{ ic.icon('alert') }}<div>
+  <h3>Hidden instructions in what the agent read</h3>
+  {% for h in pf.hidden %}
+  <p><span class="mono">{{ h.ref }}</span>{% if h.resolved_via == 'sha256' %} <span class="muted">(matched by content hash to <span class="mono">{{ h.path_in_tree }}</span>)</span>{% endif %} contains {% for k, v in h.counts.items() %}<strong>{{ v }} {{ k.replace('_', ' ') }}</strong>{{ ', ' if not loop.last }}{% endfor %} characters.</p>
+  {% if h.decoded %}<p class="small muted" style="margin:0 0 6px">Decoded Unicode-tag text, invisible to a human reader:</p><blockquote class="decoded">{{ h.decoded }}</blockquote>{% endif %}
+  {% endfor %}
+</div></section>
+{% endif %}
+<div class="two" style="margin-top:16px">
+<div>
+  <div class="card">
+    <div class="card-head"><h3>Origit record</h3>
+      <span class="btnrow" style="margin:0">{% if c.verified %}<span class="tag tag-ok"><i class="dot"></i>hash verified</span>{% else %}<span class="tag sev-high"><i class="dot"></i>hash mismatch</span>{% endif %}
+      <a class="btn btn-sm" href="/{{ repo.full_name }}/record/{{ c.sha }}.json">Raw JSON</a></span></div>
+    <dl class="kv">
+      <dt>Actor</dt><dd>{% if rec.actor.kind == 'human' %}human{% else %}<span class="actor"><i class="dot dot-bob"></i>Bob IDE</span>{% if rec.actor.mode %}, mode <code>{{ rec.actor.mode }}</code>{% endif %}{% endif %}{% if rec.actor.config_sha256 %}<span class="muted"> · config <span class="mono">{{ rec.actor.config_sha256[:12] }}</span></span>{% endif %}</dd>
+      <dt>Session</dt><dd>{% if session_label %}<strong title="session {{ rec.session.id }}">{{ session_label }}</strong>{% if rec.session.run %} <span class="muted small">run {{ rec.session.run }}</span>{% endif %} <span class="mono muted wrap-any small">{{ rec.session.id }}</span>{% else %}<span class="mono wrap-any">{{ rec.session.id }}</span>{% endif %}<span class="muted small"> · {{ rec.session.started_at | ts }} → {{ rec.session.ended_at | ts }}</span></dd>
+      <dt>Author</dt><dd>{{ rec.author }}</dd>
+      <dt>Approver</dt><dd>{{ rec.approver or '–' }}{% if rec.approved_at %}<span class="muted small"> · {{ rec.approved_at | ts }}</span>{% endif %}</dd>
+      <dt>Tests</dt><dd>{% if rec.tests.run %}<span class="tag {{ 'tag-ok' if not rec.tests.failed else 'sev-high' }}"><i class="dot"></i>{{ rec.tests.passed }} passed · {{ rec.tests.failed }} failed</span>{% else %}<span class="muted">not run</span>{% endif %}</dd>
+      <dt>Record hash</dt><dd class="mono wrap-any">{{ rec.record_sha256 }}</dd>
+    </dl>
+    <h4 class="sec">Read <span class="counter">{{ rec.read | length }}</span></h4>
+    {% if rec.read %}<ul class="reads">{% for r in rec.read %}<li><span class="kind">{{ r.kind }}</span><span class="mono wrap-any">{{ r.ref }}</span><span class="reads-right">{% if pf and pf.reads.get(r.ref) and pf.reads[r.ref].resolved_via == 'sha256' %}<span class="tag" title="not in the tree; matched a committed blob with the same sha256">same content as {{ pf.reads[r.ref].path_in_tree }}</span>{% elif pf and pf.reads.get(r.ref) and pf.reads[r.ref].resolved_via == 'unavailable' %}<span class="tag">content not in repo</span>{% endif %}{% if r.sha256 %}<span class="mono muted" title="{{ r.sha256 }}">{{ r.sha256[:10] }}</span>{% endif %}</span></li>{% endfor %}</ul>{% else %}<p class="muted">Nothing recorded.</p>{% endif %}
+    <h4 class="sec">Wrote <span class="counter">{{ rec.wrote | length }}</span></h4>
+    {% if rec.wrote %}{% if wrote_primary %}<ul class="reads">{% for w in wrote_primary %}<li><span class="kind">file</span><span class="mono wrap-any">{{ w }}</span></li>{% endfor %}</ul>{% endif %}
+    {% if wrote_secondary %}<details class="also"><summary>also touched ({{ wrote_secondary | length }}): tests, vendored packages, lockfiles, manifests</summary><ul class="reads">{% for w in wrote_secondary %}<li><span class="kind">file</span><span class="mono wrap-any">{{ w }}</span></li>{% endfor %}</ul></details>{% endif %}{% else %}<p class="muted">Nothing.</p>{% endif %}
+    {% if rec.added_deps %}<h4 class="sec">Added dependencies <span class="counter">{{ rec.added_deps | length }}</span></h4><ul class="reads">{% for d in rec.added_deps %}<li><span class="kind">{{ d.registry }}</span><span class="mono wrap-any">{{ d.name }}@{{ d.version }}</span><span class="reads-right">{% if d.lockfile_sha256 %}<span class="mono muted" title="lockfile sha256 {{ d.lockfile_sha256 }}">lock {{ d.lockfile_sha256[:10] }}</span>{% endif %}</span></li>{% endfor %}</ul>{% endif %}
+    {% if rec.commands %}<h4 class="sec">Commands <span class="counter">{{ rec.commands | length }}</span></h4><ul class="reads">{% for cmd in rec.commands %}<li><span class="kind">sh</span><span class="mono wrap-any">{{ cmd }}</span></li>{% endfor %}</ul>{% endif %}
+  </div>
+
+  {% if repo.plan == "enterprise" %}<div class="card">
+    <div class="card-head"><h3>Deterministic pre-filter</h3><span class="muted small">zero Bobcoins · runs on every push</span></div>
+    {% if pf.findings %}
+      <ul class="findings">{% for f in pf.findings %}<li><div class="finding-head"><span class="tag sev-{{ f.severity }}"><i class="dot"></i>{{ f.severity }}</span><strong>{{ f.asi }}</strong><span>{{ f.title }}</span>{% if f.cwe %}<span class="muted mono">{{ f.cwe }}</span>{% endif %}</div><div class="finding-body">{{ f.evidence }}{% if f.ref %} <span class="mono">· {{ f.ref }}</span>{% endif %}</div></li>{% endfor %}</ul>
+      <p class="muted small" style="margin:12px 0 0">{{ pf.findings | length }} trigger(s). This commit is handed to IBM Bob for evidence.</p>
+    {% else %}<p class="muted" style="margin:0">No trigger fired: no new dependency, no external read, no command, no agent-config change, no hidden characters in anything read. Bob was not asked.</p>{% endif %}
+  </div>{% endif %}
+</div>
+
+<aside class="side">
+  {% if repo.plan == "enterprise" %}<h4 class="sec" id="evidence">OWASP ASI evidence {% if ev %}<span class="tag tag-ink">{{ 'IBM Bob' if ev.source != 'seed' else 'IBM Bob, seeded' }}</span>{% endif %}</h4>
+  <div class="card">
+    {% if ev %}
+      {% if ev.summary %}<p class="small" style="margin-bottom:12px">{{ ev.summary }}</p>{% endif %}
+      <ul class="asi">{% for cat in categories %}<li class="asi-{{ cat.status }}"><div class="asi-head"><span class="mono">{{ cat.asi }}</span><span class="asi-title">{{ cat.title }}</span>
+        {% if cat.status == 'finding' %}<span class="tag sev-{{ cat.severity }}"><i class="dot"></i>{{ cat.severity }}{% if cat.cwe %} · {{ cat.cwe }}{% endif %}</span>{% elif cat.status == 'checked-clean' %}<span class="tag tag-ok"><i class="dot"></i>clean</span>{% else %}<span class="muted small">N/A</span>{% endif %}</div>
+        {% if cat.evidence %}<blockquote>{{ cat.evidence }}</blockquote>{% endif %}{% if cat.rationale %}<p class="muted small" style="margin:6px 0 0">{{ cat.rationale }}</p>{% endif %}</li>{% endfor %}</ul>
+      <p class="muted small" style="margin:12px 0 0">{% if ev.stats and ev.stats.session_costs %}Cost {{ ev.stats.session_costs }} Bobcoins · {% endif %}{% if ev.elapsed_s %}{{ ev.elapsed_s }} s · {% endif %}evidence, not a gate decision.</p>
+      <div class="btnrow"><button class="btn btn-sm" data-action="review" data-url="/api/{{ repo.full_name }}/review/{{ c.sha }}?force=true">Re-run Bob review</button></div>
+    {% else %}
+      <p class="muted small" style="margin:0 0 10px">Not reviewed yet. {% if pf.needs_review %}The pre-filter fired, so Bob should look at this commit.{% else %}The pre-filter did not fire, so Bob was not asked.{% endif %}</p>
+      <ul class="asi asi-plain">{% for a, t in ASI.items() %}<li><div class="asi-head"><span class="mono">{{ a }}</span><span class="asi-title">{{ t }}</span></div></li>{% endfor %}</ul>
+      <div class="btnrow"><button class="btn {{ 'btn-primary' if pf.needs_review }} btn-sm" data-action="review" data-url="/api/{{ repo.full_name }}/review/{{ c.sha }}">{{ 'Run Bob review' if pf.needs_review else 'Ask Bob anyway' }}</button></div>
+      <p class="muted small" style="margin:12px 0 0">Bob reads the record, what the agent read with hidden text decoded, the diff and the OWASP rulebook, then writes cited evidence per category.</p>
+    {% endif %}
+    <div class="status" id="action-status" hidden></div>
+  </div>{% else %}<h4 class="sec">Same record from the CLI</h4><div class="card"><pre class="codeblock tile wrap"><code>origit show {{ c.short }}
+origit taint {{ rec.added_deps[0].name if rec.added_deps else (rec.read[0].ref if rec.read else "PACKAGE") }}</code></pre><p class="muted small" style="margin:10px 0 0">The record is a git note on this commit. Its hash is recomputed from the canonical JSON on every view.</p></div>{% endif %}
+</aside>
+</div>
+{% endif %}
+
+<div class="card" style="margin-top:16px">
+  <div class="card-head"><h3>Changes</h3><span class="muted small">{{ c.files | length }} file(s)</span></div>
+  <ul class="files">{% for f in c.files %}<li><span class="fstat fstat-{{ f.status[:1] }}">{{ f.status[:1] }}</span><span class="mono wrap-any">{{ f.path }}</span></li>{% endfor %}</ul>
+  <details><summary>Show diff{% if c.diff_truncated %} (truncated){% endif %}</summary><pre class="diff" id="diff">{{ c.diff }}</pre></details>
+</div>
+{% endblock %}

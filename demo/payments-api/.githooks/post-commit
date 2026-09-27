@@ -1,0 +1,4 @@
+#!/bin/sh
+# Origit post-commit: attach the pending record to HEAD as a git note (refs/notes/origit) and clear the trace.
+ORIGIT=$(sh "$(dirname "$0")/origit-bin.sh") || exit 0
+"$ORIGIT" record attach || echo "origit: WARNING record not attached to $(git rev-parse --short HEAD)" >&2

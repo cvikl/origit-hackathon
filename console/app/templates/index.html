@@ -1,0 +1,106 @@
+{% extends "base.html" %}{% import "_icons.html" as ic %}{% block bodyclass %}landing{% endblock %}
+{% block content %}
+<section class="slide slide-hero">
+  <h1>Git tells you what changed.<br><span class="hero-accent">Origit tells you what the agent read before it changed it.</span></h1>
+  <p class="lead">An open-source agent provenance layer for git, with IBM Bob as the agent, the tracer and the reviewer. Every agent commit carries a sealed record of what was read, written, added and run. When a package turns out to be poisoned, one query returns the affected commits, sessions, files and the roll-back point.</p>
+  <div class="cta">
+    {% if featured %}<a class="btn btn-primary btn-lg" href="/{{ featured.full_name }}">{{ ic.icon('repo') }}Open the demo repository</a>{% endif %}
+    <a class="btn btn-lg" href="{{ settings.github_url }}">Get the open-source CLI</a>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>The problem: agents now write the code, and attackers know it</h2>
+  <p class="slide-sub">Two curves, one gap. Agent adoption climbs every year while attacks aimed at the tools agents read from grow faster still. Git records neither what an agent read nor which tool it trusted.</p>
+  <div class="charts">
+    <figure class="chart card">
+      <figcaption><strong>Developers using or planning to use AI tools</strong><span class="muted">Share of respondents, Stack Overflow Developer Survey; axis from 60%</span></figcaption>
+      <div class="chart-plot" data-chart="adoption"></div>
+      <details class="chart-table"><summary>Table view</summary><table><thead><tr><th>Year</th><th>Share</th></tr></thead><tbody><tr><td>2023</td><td>70%</td></tr><tr><td>2024</td><td>76%</td></tr><tr><td>2025</td><td>84%</td></tr></tbody></table></details>
+      <p class="source">Source: <a href="https://survey.stackoverflow.co/2025/ai" rel="noopener">Stack Overflow Developer Survey 2023–2025</a>. GitHub adds a developer every second: 180 million accounts, 36 million new in 2025 (<a href="https://github.blog/news-insights/octoverse/" rel="noopener">Octoverse 2025</a>).</p>
+    </figure>
+    <figure class="chart card">
+      <figcaption><strong>Supply-chain campaigns against coding agents, per year</strong><span class="muted">Campaigns tracked; 2026 covers January to June only</span></figcaption>
+      <div class="chart-plot" data-chart="attacks"></div>
+      <details class="chart-table"><summary>Table view</summary><table><thead><tr><th>Year</th><th>Campaigns</th></tr></thead><tbody><tr><td>2024</td><td>6</td></tr><tr><td>2025</td><td>14</td></tr><tr><td>2026, first half</td><td>37</td></tr></tbody></table></details>
+      <p class="source">Source: <a href="https://phoenix.security/accelerating-supply-chain-attacks-npm-pypi-vsx-ai-enabled-2026/" rel="noopener">Phoenix Security supply-chain tracker, June 2026</a>. 14 of 59 campaigns since 2025 were delivered through agent tooling: MCP servers, rules files, READMEs with hidden instructions.</p>
+    </figure>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>How it is done today</h2>
+  <p>An agent reads a README, a package, a tool result, then writes code and commits. Git keeps the code and a name. Nothing on the commit says what was read, which session did the work, or who approved it. When an advisory lands, the team searches the history by hand, hours to days, often past the 24-hour window.</p>
+  <figure class="diagram" aria-label="Flow: inputs read by the agent, code written, git commit, then three unanswered questions">
+    <div class="dg-col">
+      <div class="dg-box dg-in">README.md</div><div class="dg-box dg-in">fast-pay-utils@2.1.0</div><div class="dg-box dg-in">MCP tool result</div>
+    </div>
+    <div class="dg-arrow" aria-hidden="true"></div>
+    <div class="dg-col"><div class="dg-box dg-agent"><strong>IBM Bob</strong><span>reads, decides, writes</span></div></div>
+    <div class="dg-arrow" aria-hidden="true"></div>
+    <div class="dg-col"><div class="dg-box"><strong>git commit</strong><span>tree · parent · author · message</span></div></div>
+    <div class="dg-arrow" aria-hidden="true"></div>
+    <div class="dg-col">
+      <div class="dg-box dg-q">What was read?<em>not recorded</em></div><div class="dg-box dg-q">Which session, which mode?<em>not recorded</em></div><div class="dg-box dg-q">Who approved, did tests run?<em>not recorded</em></div>
+    </div>
+  </figure>
+</section>
+
+<section class="slide">
+  <h2>Our proposal</h2>
+  <p>Git stays git. Origit attaches a canonical, SHA-256-hashed record to every agent commit as a git note, captured by IBM Bob IDE lifecycle hooks. One Bob run is one commit, so what was read in a run is tied to what was written in that run.</p>
+  <ol class="steps steps-row">
+    <li><strong><code>origit init</code> installs the hooks, the mode, the MCP server and the skill.</strong> Once.</li>
+    <li><strong>Bob works; every read, write, command and dependency is traced.</strong> Every run.</li>
+    <li><strong>The run ends; the trace is folded, hashed and committed with the code.</strong> Every run.</li>
+    <li><strong><code>origit taint</code> returns every commit that read a package, file or hash.</strong> Milliseconds.</li>
+  </ol>
+  <figure class="doc doc-wide"><div class="rec tile"><span class="rec-l ">actor</span><span class="rec-v">bob-ide · model — · mode origit-build · rules 7c1f…</span><span class="rec-n">who wrote it, and under which rules</span><span class="rec-l ">session</span><span class="rec-v">#42 · started 2026-09-26T13:21Z · 14 min · 3 tool calls</span><span class="rec-n">one run, one commit</span><span class="rec-l k">read</span><span class="rec-v">README.md · sha256 1a2b…</span><span class="rec-n">what the agent looked at, fingerprinted</span><span class="rec-l k">read</span><span class="rec-v">src/payment.ts · sha256 3c4d…</span><span class="rec-n"></span><span class="rec-l k">read</span><span class="rec-v">npm:fast-pay-utils@2.1.0 README · sha256 9e8f…</span><span class="rec-n">the poisoned input</span><span class="rec-l k">read</span><span class="rec-v">mcp:registry-search "fast-pay-utils"</span><span class="rec-n">a tool result counts as a read</span><span class="rec-l ">wrote</span><span class="rec-v">src/payout-export.ts · src/payout-export.test.ts · package.json</span><span class="rec-n">what it changed</span><span class="rec-l ">added</span><span class="rec-v">dep fast-pay-utils@2.1.0 · registry npm · lockfile 8867…</span><span class="rec-n">new third-party code</span><span class="rec-l ">commands</span><span class="rec-v">npm install ./packages/fast-pay-utils/2.1.0 · npm test</span><span class="rec-n">what it ran</span><span class="rec-l ">tests</span><span class="rec-v">12 run · 12 passed · 0 failed</span><span class="rec-n">recorded, not gated</span><span class="rec-l ">approved</span><span class="rec-v">bernard · 2026-09-26T14:02Z</span><span class="rec-n">the human who signed it off</span><span class="rec-l k2">sha256</span><span class="rec-v">4d9e2c1f…b02</span><span class="rec-n">the seal over everything above</span></div><figcaption>The Origit record for session #42, attached to commit <span class="mono">a1f3c9</span> as a git note in <span class="mono">refs/notes/origit</span>. Change one character and the seal no longer matches.</figcaption></figure>
+</section>
+
+<section class="slide">
+  <h2>The result</h2>
+  <p>Day 3: <code>fast-pay-utils@2.1.0</code> is flagged. Its README carried an invisible Unicode-tag instruction that Bob read in session #42. One query returns the affected commits, sessions, files, approver, first read and the roll-back commit: every field the Article 14 early warning needs, from a record sealed at commit time.</p>
+  <figure class="shot"><img src="/static/img/taint.png" alt="Origit Console taint view: 3 commits affected by fast-pay-utils, sessions, files written, approver, first read and roll-back commit, affected commits in red and clean ones in green" loading="lazy"><figcaption>The taint view on the demo repository.{% if featured %} <a href="/{{ featured.full_name }}/taint?q=fast-pay-utils">Run it live</a>.{% endif %}</figcaption></figure>
+</section>
+
+<section class="slide">
+  <h2>Powered by IBM Bob</h2>
+  <div class="bob-split">
+    <p>Bob IDE writes the code and, through its lifecycle hooks, is the source of every <code>read[]</code> entry. On the Business plan Bob also reviews every push against the OWASP Agentic Top 10 and writes cited evidence per category, decoded hidden text included, and drafts the Article 14 early warning on request. Bob evaluates and drafts; deterministic code records and queries.{% if featured %} <a href="/{{ featured.full_name }}/security">See Bob's evidence live</a>.{% endif %}</p>
+    <img class="bob-img" src="/static/img/bob-standing.webp" alt="IBM Bob mascot" loading="lazy">
+  </div>
+</section>
+
+<section class="slide">
+  <h2>From GitHub to Origit to a subscription</h2>
+  <p>Open core, like git and GitHub. The free layer onboards developers where they already are. The Business plan is what the compliance team buys when the auditor asks what the agents did.</p>
+  <figure class="journey" aria-label="Onboarding journey from GitHub developer to Business subscription">
+    <div class="jy-step"><span class="jy-num">1</span><strong>Developer on GitHub</strong><span>builds with IBM Bob, keeps the repo where it is</span></div>
+    <div class="jy-arrow" aria-hidden="true"></div>
+    <div class="jy-step"><span class="jy-num">2</span><strong><code>origit init</code></strong><span>free, open source, offline, no account; every Bob run becomes a sealed record</span></div>
+    <div class="jy-arrow" aria-hidden="true"></div>
+    <div class="jy-step"><span class="jy-num">3</span><strong>Origit Console, free</strong><span>the repository with the record beside every commit and the taint query</span></div>
+    <div class="jy-arrow" aria-hidden="true"></div>
+    <div class="jy-step jy-pay"><span class="jy-num">4</span><strong>Business plan, $50 per developer per month</strong><span>Bob Review on every push, Article 14 drafts, security tracker, evidence pack</span></div>
+  </figure>
+  <p class="pull">5M regulated-industry developer seats. 1% at $50/month = $30M ARR.</p>
+  <p class="muted">GitHub has roughly 150 million developers, 15 to 20 million on paid enterprise seats, about 5 million of them in regulated industries with agents in the software lifecycle. A first mover taking 1% in three to five years has 50,000 seats; 5% would be $150M. Illustrative, not a forecast.</p>
+</section>
+
+<section class="slide">
+  <h2>The team behind Origit</h2>
+  <p>Product engineering in Cambridge, governance and regulation in London, offensive security in Hong Kong. Built for the IBM Bob 2.0 Hackathon.</p>
+  <div class="team">
+    <div class="member"><img class="portrait" src="/static/img/team-timotej.jpg" alt="Portrait of Timotej Cvikl" loading="lazy"><strong>Timotej Cvikl</strong><span class="member-role">Product engineering</span><span class="member-bio">Verification architecture, AI/ML, three-time hackathon winner. Built the Origit core, the console and the Bob integration.</span><span class="member-h">Venture building and hackathons</span><div class="logos"><span class="logo" title="University of Cambridge Judge Business School Entrepreneurship Centre"><img src="/static/img/logos/judge.png" alt="University of Cambridge Judge Business School Entrepreneurship Centre" loading="lazy"></span><span class="logo" title="E-Lab, King's College Cambridge"><img src="/static/img/logos/elab.png" alt="E-Lab, King's College Cambridge" loading="lazy"></span><span class="logo" title="C:\\>DIR hackathon"><img src="/static/img/logos/cdir.png" alt="C:\\>DIR hackathon" loading="lazy"></span><span class="logo" title="C:\\>DIR"><img src="/static/img/logos/cdir-mark.png" alt="C:\\>DIR" loading="lazy"></span><span class="logo" title="Google"><img src="/static/img/logos/google.png" alt="Google" loading="lazy"></span><span class="logo" title="Google MedGemma"><img src="/static/img/logos/medgemma.png" alt="Google MedGemma" loading="lazy"></span></div></div>
+    <div class="member"><img class="portrait" src="/static/img/team-bernard.jpg" alt="Portrait of Bernard Liu" loading="lazy"><strong>Bernard Liu</strong><span class="member-role">Governance and regulation</span><span class="member-bio">PhD, intellectual property and technology governance. Wrote the statements, the CRA Article 14 analysis and the demo script.</span><span class="member-h">Professional experience and education</span><div class="logos"><span class="logo" title="Amazon Web Services"><img src="/static/img/logos/aws.png" alt="Amazon Web Services" loading="lazy"></span><span class="logo" title="Rolls-Royce"><img src="/static/img/logos/rolls-royce.png" alt="Rolls-Royce" loading="lazy"></span><span class="logo" title="Ella Lan"><img src="/static/img/logos/ellalan.png" alt="Ella Lan" loading="lazy"></span><span class="logo" title="University of Cambridge Department of Engineering"><img src="/static/img/logos/cam-eng.png" alt="University of Cambridge Department of Engineering" loading="lazy"></span><span class="logo" title="London School of Economics"><img src="/static/img/logos/lse.png" alt="London School of Economics" loading="lazy"></span></div></div>
+    <div class="member"><img class="portrait" src="/static/img/team-jeremy.jpg" alt="Portrait of Jeremy Wong" loading="lazy"><strong>Jeremy Wong</strong><span class="member-role">Offensive security, advisor</span><span class="member-bio">Cyber security consultant, OSCE3, CRTO, CRTP and OSCP qualified. Built the compromised package, the advisory and the pre-filter rules for the demo.</span><span class="member-h">Professional experience and qualifications</span><div class="logos"><span class="logo" title="wizlynx group"><img src="/static/img/logos/wizlynx.png" alt="wizlynx group" loading="lazy"></span><span class="logo" title="Employer"><img src="/static/img/logos/red-mark.png" alt="Employer" loading="lazy"></span><span class="logo" title="OffSec"><img src="/static/img/logos/offsec.png" alt="OffSec" loading="lazy"></span><span class="logo" title="Amazon Web Services"><img src="/static/img/logos/aws.png" alt="Amazon Web Services" loading="lazy"></span></div></div>
+  </div>
+</section>
+
+{% if repos %}<section class="slide slide-repos">
+  <h4 class="sec">On Origit Console</h4>
+  <div class="repolist">{% for r in repos[:4] %}{% include "_repocard.html" %}{% endfor %}</div>
+</section>{% endif %}
+<script src="/static/landing.js" defer></script>
+{% endblock %}

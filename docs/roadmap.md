@@ -18,11 +18,11 @@ No AI makes the gate decision; Bob supplies evidence and the human signs.
 
 ---
 
-## 2. Adapters for Claude Code, Cursor and Codex
+## 2. Adapters for Cursor, Codex and other coding agents
 
 Origit's trace format is already stable (`record.py`); the missing piece is a lightweight shim that maps each agent's native event stream onto the same schema.
 **Bob-native first:** the Bob IDE/Shell hook integration is the reference implementation and the one that will be demoed and supported first.
-Claude Code emits a `claude_desktop_log` JSONL file and an MCP tool-call stream that maps cleanly onto `read[]` / `commands[]`; a thin Python adapter is sufficient.
+Most coding agents expose a tool-call stream or a local JSONL log that maps cleanly onto `read[]` / `commands[]`; a thin Python adapter per agent is sufficient.
 Cursor exposes a plugin API; the adapter registers as a Cursor extension and forwards `onDidUseTool` events.
 Codex (OpenAI Codex CLI) logs all tool calls to a local JSONL file; the adapter tails that file and posts to `origit trace`.
 All three adapters must pass the same acceptance tests as the Bob adapter (session start/stop, read, write, exec events round-trip without loss) and must never replace or weaken the Bob-native integration path.

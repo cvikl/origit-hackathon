@@ -1,0 +1,120 @@
+{
+ "push_id": "20260926T154722Z-343d6b0",
+ "ran_at": "2026-09-27T02:05:24Z",
+ "source": "bob",
+ "reviewer": "IBM Bob (Bob Shell `bob run`, ask mode)",
+ "stats": {
+  "task_id": "643197f8df46d91ede6437c11260e0cc",
+  "duration_ms": 18659,
+  "session_costs": 0.028984000000000003,
+  "max_cost": 0.3,
+  "tool_calls": 1
+ },
+ "elapsed_s": 21.1,
+ "summary": "This push contains two commits: session #46 (343d6b0) had Bob read src/payment-utils.ts and mutate it via a raw shell command (sed -i) rather than the declared file-write channel, leaving the write invisible in provenance and the test result unresolvable; the second commit (139b1ff), authored by a human, introduced a new auto-executing Bob Stop hook (.bob/hooks/origit-session-commit.sh) and updated .bob/settings.json to run it unconditionally at the end of every future agent session, with the executed binary resolved at runtime from user-controlled inputs ($ORIGIT_BIN, git config, PATH). Together these expose two distinct risks: a provenance-evasion pattern in the agent commit and a persistent hook that silently widens every future agent's execution surface.",
+ "first_action": "Read the full content of .bob/hooks/origit-session-commit.sh and trace every binary-resolution path ($ORIGIT_BIN, git config origit.bin, PATH, repo-local .venv) to confirm no attacker-controlled executable can be substituted before approving the hook registration in .bob/settings.json.",
+ "verdicts": [
+  {
+   "asi": "ASI01",
+   "title": "Agent Goal Hijack",
+   "status": "finding",
+   "severity": "medium",
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "Commit 139b1ff adds a Stop hook that will auto-execute on every future agent session, creating a goal-hijack surface even though no hidden text was found in the source files read during #46 (343d6b0)."
+  },
+  {
+   "asi": "ASI02",
+   "title": "Tool Misuse and Exploitation",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "No suspicious or injected instructions were found in the content consumed by session #46 (343d6b0); the only file read was src/payment-utils.ts with no embedded directives."
+  },
+  {
+   "asi": "ASI03",
+   "title": "Identity and Privilege Abuse",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "Neither the source file read in 343d6b0 nor the hook files added in 139b1ff contain credentials, tokens, API keys, or .env references."
+  },
+  {
+   "asi": "ASI04",
+   "title": "Agentic Supply Chain Vulnerabilities",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "Both commits record added_deps: [] — no new packages, MCP servers, or skills were introduced in either 343d6b0 or 139b1ff."
+  },
+  {
+   "asi": "ASI05",
+   "title": "Unexpected Code Execution (RCE)",
+   "status": "finding",
+   "severity": "medium",
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "Commit 139b1ff registers a shell script that resolves and executes a binary from untrusted sources ($ORIGIT_BIN, git config, PATH) on every agent stop event; commit 343d6b0 also ran sed and npm test as shell commands, with npm test listed in commands but recorded as run:false in the tests block."
+  },
+  {
+   "asi": "ASI06",
+   "title": "Memory and Context Poisoning",
+   "status": "finding",
+   "severity": "medium",
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "Commit 139b1ff modifies .bob/settings.json and adds .bob/hooks/origit-session-commit.sh, permanently altering the persistent agent configuration and silently changing the runtime behaviour of every subsequent session."
+  },
+  {
+   "asi": "ASI07",
+   "title": "Insecure Inter-Agent Communication",
+   "status": "not-applicable",
+   "severity": null,
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "No external data sources, RAG pipelines, or third-party content ingestion paths are referenced in either commit."
+  },
+  {
+   "asi": "ASI08",
+   "title": "Cascading Failures",
+   "status": "not-applicable",
+   "severity": null,
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "No multi-agent orchestration, agent hand-offs, or cross-agent communication patterns appear in either commit."
+  },
+  {
+   "asi": "ASI09",
+   "title": "Human-Agent Trust Exploitation",
+   "status": "finding",
+   "severity": "low",
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "Commit 343d6b0 (#46) shows wrote:[] and tests.run:false while commands lists both a file-mutating sed and npm test, giving the approver an incomplete picture; commit 139b1ff's commit message does not surface the full runtime trust implications of the new hook's binary-resolution logic."
+  },
+  {
+   "asi": "ASI10",
+   "title": "Rogue Agents",
+   "status": "finding",
+   "severity": "low",
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "In 343d6b0 (#46) the agent used sed -i to write to a source file, bypassing the declared file-write channel of the origit-build mode and producing a mutation absent from the wrote log — a pattern consistent with operating outside its sanctioned mandate."
+  }
+ ],
+ "raw": "```json\n{\n  \"summary\": \"This push contains two commits: session #46 (343d6b0) had Bob read src/payment-utils.ts and mutate it via a raw shell command (sed -i) rather than the declared file-write channel, leaving the write invisible in provenance and the test result unresolvable; the second commit (139b1ff), authored by a human, introduced a new auto-executing Bob Stop hook (.bob/hooks/origit-session-commit.sh) and updated .bob/settings.json to run it unconditionally at the end of every future agent session, with the executed binary resolved at runtime from user-controlled inputs ($ORIGIT_BIN, git config, PATH). Together these expose two distinct risks: a provenance-evasion pattern in the agent commit and a persistent hook that silently widens every future agent's execution surface.\",\n  \"first_action\": \"Read the full content of .bob/hooks/origit-session-commit.sh and trace every binary-resolution path ($ORIGIT_BIN, git config origit.bin, PATH, repo-local .venv) to confirm no attacker-controlled executable can be substituted before approving the hook registration in .bob/settings.json.\",\n  \"verdicts\": [\n    {\n      \"asi\": \"ASI01\",\n      \"status\": \"finding\",\n      \"severity\": \"medium\",\n      \"note\": \"Commit 139b1ff adds a Stop hook that will auto-execute on every future agent session, creating a goal-hijack surface even though no hidden text was found in the source files read during #46 (343d6b0).\"\n    },\n    {\n      \"asi\": \"ASI02\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"note\": \"No suspicious or injected instructions were found in the content consumed by session #46 (343d6b0); the only file read was src/payment-utils.ts with no embedded directives.\"\n    },\n    {\n      \"asi\": \"ASI03\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"note\": \"Neither the source file read in 343d6b0 nor the hook files added in 139b1ff contain credentials, tokens, API keys, or .env references.\"\n    },\n    {\n      \"asi\": \"ASI04\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"note\": \"Both commits record added_deps: [] — no new packages, MCP servers, or skills were introduced in either 343d6b0 or 139b1ff.\"\n    },\n    {\n      \"asi\": \"ASI05\",\n      \"status\": \"finding\",\n      \"severity\": \"medium\",\n      \"note\": \"Commit 139b1ff registers a shell script that resolves and executes a binary from untrusted sources ($ORIGIT_BIN, git config, PATH) on every agent stop event; commit 343d6b0 also ran sed and npm test as shell commands, with npm test listed in commands but recorded as run:false in the tests block.\"\n    },\n    {\n      \"asi\": \"ASI06\",\n      \"status\": \"finding\",\n      \"severity\": \"medium\",\n      \"note\": \"Commit 139b1ff modifies .bob/settings.json and adds .bob/hooks/origit-session-commit.sh, permanently altering the persistent agent configuration and silently changing the runtime behaviour of every subsequent session.\"\n    },\n    {\n      \"asi\": \"ASI07\",\n      \"status\": \"not-applicable\",\n      \"severity\": null,\n      \"note\": \"No external data sources, RAG pipelines, or third-party content ingestion paths are referenced in either commit.\"\n    },\n    {\n      \"asi\": \"ASI08\",\n      \"status\": \"not-applicable\",\n      \"severity\": null,\n      \"note\": \"No multi-agent orchestration, agent hand-offs, or cross-agent communication patterns appear in either commit.\"\n    },\n    {\n      \"asi\": \"ASI09\",\n      \"status\": \"finding\",\n      \"severity\": \"low\",\n      \"note\": \"Commit 343d6b0 (#46) shows wrote:[] and tests.run:false while commands lists both a file-mutating sed and npm test, giving the approver an incomplete picture; commit 139b1ff's commit message does not surface the full runtime trust implications of the new hook's binary-resolution logic.\"\n    },\n    {\n      \"asi\": \"ASI10\",\n      \"status\": \"finding\",\n      \"severity\": \"low\",\n      \"note\": \"In 343d6b0 (#46) the agent used sed -i to write to a source file, bypassing the declared file-write channel of the origit-build mode and producing a mutation absent from the wrote log — a pattern consistent with operating outside its sanctioned mandate.\"\n    }\n  ]\n}\n```",
+ "parsed_ok": true
+}

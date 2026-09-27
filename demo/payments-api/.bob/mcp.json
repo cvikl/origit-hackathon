@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "origit": {
+      "command": "origit",
+      "args": [
+        "mcp"
+      ],
+      "alwaysAllow": [
+        "origit_taint",
+        "origit_show",
+        "origit_log"
+      ],
+      "disabled": false
+    }
+  }
+}

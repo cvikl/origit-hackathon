@@ -1,10 +1,12 @@
 # demo
 
-- `payments-api/` — git submodule → [`origit-demo-payments-api`](../../origit-demo-payments-api): the fictional fintech's
-  repository that IBM Bob IDE works in with Origit installed (`origit init`). It vendors `fast-pay-utils` 2.0.0 (clean)
-  and 2.1.0 (compromised, synthetic) under `packages/`. Clone with `git submodule update --init`.
-- `evidence/` — committed snapshots from that repo so nobody needs the submodule to see the result:
-  `export.json` (`origit export`, every record), `taint-fast-pay-utils.json` (`origit taint --json`), `taint.txt` (human output),
-  `prefilter-*.json` (deterministic ASI findings per commit).
+- `payments-api/` — a snapshot of the fictional fintech's repository that IBM Bob IDE works in with Origit installed
+  (`origit init`): the app, `.bob/` (hooks, modes, MCP server, skill), `.githooks/`, `.origit/config.json` (session base #42)
+  and the vendored `fast-pay-utils` 2.0.0 (clean) and 2.1.0 (compromised, synthetic) under `packages/`. The snapshot is the
+  tree at commit `970e7f9`; the full history with the Origit records (`refs/notes/origit`) is browsable live at
+  https://origit.uk/acme-payments/payments-api.
+- `evidence/` — committed output of the CLI on that history so nobody needs the live repo: `export.json` (`origit export`,
+  every record), `log.json`/`log.txt` (`origit log`, sessions #42–#49), `taint-fast-pay-utils.json` and `taint.txt`
+  (`origit taint`), `prefilter-<sha>.json` (deterministic ASI findings per commit).
 
 The demo story is in [`../docs/demo-script.md`](../docs/demo-script.md).

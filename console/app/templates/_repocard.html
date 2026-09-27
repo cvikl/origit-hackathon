@@ -1,0 +1,5 @@
+{% import "_icons.html" as ic %}<article class="repocard">
+  <h3 class="repocard-name">{{ ic.icon('repo', 'muted') }}<a href="/{{ r.full_name }}">{{ r.org }}<span class="slash">/</span><strong>{{ r.name }}</strong></a><span class="tag">Public</span>{% if r.plan == "enterprise" %}<span class="tag tag-ent" title="Business plan">Business</span>{% endif %}</h3>
+  <p class="muted">{{ r.description or 'No description provided.' }}</p>
+  <div class="repocard-meta"><span>{{ r.commits }} commits</span><span>{{ r.records }} with records</span><span>Updated {{ r.updated_at | ago }}</span></div>
+</article>

@@ -1,0 +1,32 @@
+# Origit Console on the shared box. One container; joins the existing Caddy network (deploy_default) so the Caddy in
+# /opt/compass/deploy can reverse_proxy to it by name. Site config: /opt/caddy-sites/origit-uk.caddy (drop-in, see publish.sh).
+# Bare repos live on the host at /srv/origit/repos so `git push` over SSH lands directly in the console's data dir.
+name: origit
+
+services:
+  origit-console:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    container_name: origit-console
+    env_file: .env
+    environment:
+      ORIGIT_DATA_DIR: /data
+      PUBLIC_URL: ${PUBLIC_URL:-https://origit.uk}
+      GIT_SSH_HOST: ${GIT_SSH_HOST:-git@origit.uk}
+      GIT_SSH_ROOT: /srv/origit/repos
+      HOOK_URL: http://127.0.0.1:8787/api/hooks/post-receive
+    volumes:
+      - /srv/origit/repos:/data/repos
+      - origit_state:/data/state
+    ports:
+      - "127.0.0.1:8787:8787"   # for the post-receive hook running on the host
+    restart: unless-stopped
+
+volumes:
+  origit_state:
+
+networks:
+  default:
+    name: deploy_default
+    external: true

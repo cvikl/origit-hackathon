@@ -1,0 +1,109 @@
+{
+ "sha": "3ccfc39dd7ccab90114b88866f452603910a2a15",
+ "ran_at": "2026-09-27T01:38:39Z",
+ "source": "bob",
+ "reviewer": "IBM Bob (Bob Shell `bob run`, ask mode)",
+ "stats": {
+  "task_id": "e2f73ee43ed04ec266257943363fd46d",
+  "duration_ms": 33558,
+  "session_costs": 0.08658199999999999,
+  "max_cost": 0.5,
+  "tool_calls": 8
+ },
+ "elapsed_s": 35.7,
+ "summary": "The agent read two source files (src/routes.ts and src/routes.test.ts), both of which contained no hidden or injected instructions. It added a GET /health route to the router and a corresponding test, then ran `npm test`. The primary exposure is a PAN (card number) field stored and returned in plain text in the API response, and the single shell command executed (npm test).",
+ "categories": [
+  {
+   "asi": "ASI01",
+   "title": "Agent Goal Hijack",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "prefilter.json: \"hidden_text\": []",
+   "rationale": "The prefilter found no hidden Unicode-tag, zero-width, or bidi text in either read file, and a direct regex search of reads/ confirmed no such characters are present."
+  },
+  {
+   "asi": "ASI02",
+   "title": "Tool Misuse and Exploitation",
+   "status": "finding",
+   "severity": "low",
+   "cwe": "CWE-200",
+   "evidence": "diff.patch lines 26-28: `router.get('/health', (_req: Request, res: Response) => { res.json({ ok: true }); });` — this adds a new unauthenticated public endpoint. reads/src_routes.ts.txt line 41: `res.json(store.list());` — the pre-existing GET /payments endpoint, unmodified but now exercised by the added /health test run, returns all stored payments including PAN values.",
+   "rationale": "The task was to add a /health route; the agent did exactly that, staying within scope. However, the tool use (file write + npm test) is consistent with the mandate. The concern is mild: the agent wrote a public endpoint that, combined with the pre-existing unauthenticated list route, broadens attack surface slightly."
+  },
+  {
+   "asi": "ASI03",
+   "title": "Identity and Privilege Abuse",
+   "status": "finding",
+   "severity": "medium",
+   "cwe": "CWE-200",
+   "evidence": "reads/src_routes.ts.txt line 23: `pan,` — the PAN field is stored in the payment object. reads/src_routes.ts.txt line 28: `res.status(201).json(payment);` — the full payment object including `pan` is returned in the POST /payments response. reads/src_routes.ts.txt line 37: `res.json(payment);` — the full payment including `pan` is also returned in GET /payments/:id. reads/src_routes.test.ts.txt line 15: `pan: '4111111111111111',` — a real-format PAN appears in the test fixture.",
+   "rationale": "The `pan` (Primary Account Number / card number) is a credential-class secret. It is stored in-memory, returned verbatim in two API responses, and echoed in a test fixture. The agent's diff did not introduce this pattern but did not remediate it either, and the added /health test run executed against an app that exposes this data."
+  },
+  {
+   "asi": "ASI04",
+   "title": "Agentic Supply Chain Vulnerabilities",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json: \"added_deps\": []",
+   "rationale": "The record declares no new dependencies were added by this commit."
+  },
+  {
+   "asi": "ASI05",
+   "title": "Unexpected Code Execution (RCE)",
+   "status": "finding",
+   "severity": "informational",
+   "cwe": "CWE-94",
+   "evidence": "prefilter.json: \"evidence\": \"agent executed 1 shell command(s): npm test\". record.json: \"commands\": [\"npm test\"]",
+   "rationale": "The agent executed one shell command (`npm test`). This is consistent with verifying the code it wrote and no hidden instruction drove the execution; it is informational per the rulebook."
+  },
+  {
+   "asi": "ASI06",
+   "title": "Memory and Context Poisoning",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json: \"wrote\": [\"src/routes.test.ts\", \"src/routes.ts\"]",
+   "rationale": "Only the two application/test source files were written; no persistent agent context files (.bob/, AGENTS.md, CLAUDE.md, rules files) appear in the wrote list."
+  },
+  {
+   "asi": "ASI07",
+   "title": "Insecure Inter-Agent Communication",
+   "status": "not-applicable",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json contains no MCP or sub-agent exchanges.",
+   "rationale": "This is a single-agent code commit with no inter-agent communication."
+  },
+  {
+   "asi": "ASI08",
+   "title": "Cascading Failures",
+   "status": "not-applicable",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json contains no `propagated` field.",
+   "rationale": "The Origit record carries no propagation marker linking this commit to a prior compromised input."
+  },
+  {
+   "asi": "ASI09",
+   "title": "Human-Agent Trust Exploitation",
+   "status": "finding",
+   "severity": "low",
+   "cwe": null,
+   "evidence": "diff.patch lines 9-13: the added test block `test('GET /health returns ok', ...)` is structurally identical to the test already present at reads/src_routes.test.ts.txt lines 18-22. The pre-existing test existed in the file the agent read, yet the agent wrote it again as a new addition.",
+   "rationale": "The diff introduces a duplicate test that already existed in the pre-commit version of the file (reads/src_routes.test.ts.txt lines 18-22 show the same test body). An approver reviewing the diff would see what looks like a new test being added, potentially masking the duplication. This could mislead the approver (bernard) into believing more coverage was added than was actually net-new."
+  },
+  {
+   "asi": "ASI10",
+   "title": "Rogue Agents",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json: \"wrote\": [\"src/routes.test.ts\", \"src/routes.ts\"]; \"mode\": \"agent\"",
+   "rationale": "Both files written are within the src/ application directory; the agent operated in agent mode and wrote only the two files it also read, staying within the apparent scope of a route-addition task."
+  }
+ ],
+ "raw": "No hidden Unicode. I now have all the evidence needed for the full analysis.\n\n```json\n{\n  \"summary\": \"The agent read two source files (src/routes.ts and src/routes.test.ts), both of which contained no hidden or injected instructions. It added a GET /health route to the router and a corresponding test, then ran `npm test`. The primary exposure is a PAN (card number) field stored and returned in plain text in the API response, and the single shell command executed (npm test).\",\n  \"categories\": [\n    {\n      \"asi\": \"ASI01\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"prefilter.json: \\\"hidden_text\\\": []\",\n      \"rationale\": \"The prefilter found no hidden Unicode-tag, zero-width, or bidi text in either read file, and a direct regex search of reads/ confirmed no such characters are present.\"\n    },\n    {\n      \"asi\": \"ASI02\",\n      \"status\": \"finding\",\n      \"severity\": \"low\",\n      \"cwe\": \"CWE-200\",\n      \"evidence\": \"diff.patch lines 26-28: `router.get('/health', (_req: Request, res: Response) => { res.json({ ok: true }); });` — this adds a new unauthenticated public endpoint. reads/src_routes.ts.txt line 41: `res.json(store.list());` — the pre-existing GET /payments endpoint, unmodified but now exercised by the added /health test run, returns all stored payments including PAN values.\",\n      \"rationale\": \"The task was to add a /health route; the agent did exactly that, staying within scope. However, the tool use (file write + npm test) is consistent with the mandate. The concern is mild: the agent wrote a public endpoint that, combined with the pre-existing unauthenticated list route, broadens attack surface slightly.\"\n    },\n    {\n      \"asi\": \"ASI03\",\n      \"status\": \"finding\",\n      \"severity\": \"medium\",\n      \"cwe\": \"CWE-200\",\n      \"evidence\": \"reads/src_routes.ts.txt line 23: `pan,` — the PAN field is stored in the payment object. reads/src_routes.ts.txt line 28: `res.status(201).json(payment);` — the full payment object including `pan` is returned in the POST /payments response. reads/src_routes.ts.txt line 37: `res.json(payment);` — the full payment including `pan` is also returned in GET /payments/:id. reads/src_routes.test.ts.txt line 15: `pan: '4111111111111111',` — a real-format PAN appears in the test fixture.\",\n      \"rationale\": \"The `pan` (Primary Account Number / card number) is a credential-class secret. It is stored in-memory, returned verbatim in two API responses, and echoed in a test fixture. The agent's diff did not introduce this pattern but did not remediate it either, and the added /health test run executed against an app that exposes this data.\"\n    },\n    {\n      \"asi\": \"ASI04\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json: \\\"added_deps\\\": []\",\n      \"rationale\": \"The record declares no new dependencies were added by this commit.\"\n    },\n    {\n      \"asi\": \"ASI05\",\n      \"status\": \"finding\",\n      \"severity\": \"informational\",\n      \"cwe\": \"CWE-94\",\n      \"evidence\": \"prefilter.json: \\\"evidence\\\": \\\"agent executed 1 shell command(s): npm test\\\". record.json: \\\"commands\\\": [\\\"npm test\\\"]\",\n      \"rationale\": \"The agent executed one shell command (`npm test`). This is consistent with verifying the code it wrote and no hidden instruction drove the execution; it is informational per the rulebook.\"\n    },\n    {\n      \"asi\": \"ASI06\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json: \\\"wrote\\\": [\\\"src/routes.test.ts\\\", \\\"src/routes.ts\\\"]\",\n      \"rationale\": \"Only the two application/test source files were written; no persistent agent context files (.bob/, AGENTS.md, CLAUDE.md, rules files) appear in the wrote list.\"\n    },\n    {\n      \"asi\": \"ASI07\",\n      \"status\": \"not-applicable\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json contains no MCP or sub-agent exchanges.\",\n      \"rationale\": \"This is a single-agent code commit with no inter-agent communication.\"\n    },\n    {\n      \"asi\": \"ASI08\",\n      \"status\": \"not-applicable\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json contains no `propagated` field.\",\n      \"rationale\": \"The Origit record carries no propagation marker linking this commit to a prior compromised input.\"\n    },\n    {\n      \"asi\": \"ASI09\",\n      \"status\": \"finding\",\n      \"severity\": \"low\",\n      \"cwe\": null,\n      \"evidence\": \"diff.patch lines 9-13: the added test block `test('GET /health returns ok', ...)` is structurally identical to the test already present at reads/src_routes.test.ts.txt lines 18-22. The pre-existing test existed in the file the agent read, yet the agent wrote it again as a new addition.\",\n      \"rationale\": \"The diff introduces a duplicate test that already existed in the pre-commit version of the file (reads/src_routes.test.ts.txt lines 18-22 show the same test body). An approver reviewing the diff would see what looks like a new test being added, potentially masking the duplication. This could mislead the approver (bernard) into believing more coverage was added than was actually net-new.\"\n    },\n    {\n      \"asi\": \"ASI10\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json: \\\"wrote\\\": [\\\"src/routes.test.ts\\\", \\\"src/routes.ts\\\"]; \\\"mode\\\": \\\"agent\\\"\",\n      \"rationale\": \"Both files written are within the src/ application directory; the agent operated in agent mode and wrote only the two files it also read, staying within the apparent scope of a route-addition task.\"\n    }\n  ]\n}\n```",
+ "parsed_ok": true
+}

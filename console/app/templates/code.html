@@ -1,0 +1,39 @@
+{% extends "base.html" %}{% import "_icons.html" as ic %}{% block title %}{{ repo.full_name }} · Origit Console{% endblock %}
+{% block repohead %}{% include "_repohead.html" %}{% endblock %}
+{% block content %}
+<div class="two">
+  <div>
+    {% if head %}
+    <div class="pathbar">
+      <span class="tag"><span class="dot" style="background:var(--ok)"></span>{{ repo.branch }}</span>
+      <span class="crumbs"><a href="/{{ repo.full_name }}">{{ repo.name }}</a>{% for c in crumbs %}<span class="crumb-sep">/</span><a href="/{{ repo.full_name }}/tree/{{ c.path }}">{{ c.name }}</a>{% endfor %}</span>
+      <a class="btn btn-sm" style="margin-left:auto" href="/{{ repo.full_name }}/commits">{{ ic.icon('commit') }}{{ repo.commits }} commits</a>
+      <a class="btn btn-sm" href="/api/{{ repo.full_name }}/export">{{ ic.icon('download') }}Evidence pack</a>
+    </div>
+    <div class="filebox">
+      <div class="filebox-head">
+        <span class="avatar" aria-hidden="true">{{ head.author[:1] | upper }}</span><span class="crow-author">{{ head.author }}</span>
+        <a class="filebox-msg" href="/{{ repo.full_name }}/commit/{{ head.sha }}">{{ head.subject }}</a>
+        <span class="filebox-right">{% if repo.plan == "enterprise" and head.prefilter.needs_review %}<span class="tag sev-{{ head.max_severity }}" title="{{ head.reasons | join(', ') }}"><i class="dot"></i>{{ head.max_severity }}{% if head.reason %} · {{ head.reason }}{% endif %}</span>{% endif %}{% if head.record and head.record.actor.kind != 'human' %}<span class="tag tag-bob">Bob IDE</span>{% endif %}<a class="sha" href="/{{ repo.full_name }}/commit/{{ head.sha }}">{{ head.short }}</a><span class="muted small">{{ head.date | ago }}</span></span>
+      </div>
+      <ul class="files-table">
+        {% if subpath %}<li><span class="ficon">{{ ic.icon('folder') }}</span><a class="fname" href="/{{ repo.full_name }}{% if crumbs | length > 1 %}/tree/{{ crumbs[-2].path }}{% endif %}">..</a><span></span><span></span></li>{% endif %}
+        {% for e in entries %}<li>
+          <span class="ficon {{ 'ficon-dir' if e.kind == 'dir' }}">{{ ic.icon('folder' if e.kind == 'dir' else 'file') }}</span>
+          <a class="fname" href="/{{ repo.full_name }}/{{ 'tree' if e.kind == 'dir' else 'blob' }}/{{ e.path }}">{{ e.name }}</a>
+          <a class="fmsg muted" href="/{{ repo.full_name }}/commit/{{ e.last.sha }}" title="{{ e.last.subject }}">{{ e.last.subject if e.last else '' }}</a>
+          <span class="muted small ftime">{{ e.last.date | ago if e.last else '' }}</span>
+        </li>{% endfor %}
+      </ul>
+    </div>
+    {% if readme_html %}
+    <div class="card readme">
+      <div class="card-head"><h3>{{ ic.icon('book') }}{{ readme_name }}</h3><a class="btn btn-sm" href="/{{ repo.full_name }}/blob/{{ readme_name }}">Raw</a></div>
+      <div class="md">{{ readme_html | safe }}</div>
+    </div>
+    {% endif %}
+    {% else %}<section class="empty"><p>Empty repository. Push a branch and <code>refs/notes/origit</code>.</p></section>{% endif %}
+  </div>
+  <aside class="side">{% include "_sidebar.html" %}</aside>
+</div>
+{% endblock %}

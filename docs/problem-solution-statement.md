@@ -15,8 +15,8 @@ code that calls it. The compromise is invisible until an advisory appears.
 
 **The EU Cyber Resilience Act Article 14 went live 11 September 2026.** Any manufacturer
 selling software in the EU must report a severe incident to ENISA: early warning within
-24 hours of becoming aware, full notification within 72 hours, final report within 14 days of
-a fix. The clock starts the moment the team reads the advisory. Article 14(5)(b) defines a
+24 hours of becoming aware, full notification within 72 hours, final report within the Article 14
+deadlines. The clock starts the moment the team reads the advisory. Article 14(5)(b) defines a
 severe incident as one capable of leading to the introduction or execution of malicious code —
 a compromised library introduced by an AI agent meets that definition. No grace period.
 
@@ -32,8 +32,8 @@ hashed record to every agent commit and makes it queryable.
 `origit init` installs lifecycle hooks and a git hook into any existing repo. Every agent
 commit gets an Origit record — canonical JSON, SHA-256 hashed, stored via `git notes` —
 capturing session id, actor (mode, model, rules hash), every file and package read (`read[]`),
-files written, dependencies added, shell commands, approver, and test results. A commit
-without a record is refused by the pre-commit hook.
+files written, dependencies added, shell commands, approver, and test results. Agent commits
+without a captured trace can be refused by the pre-commit hook; human commits pass through marked `actor: human`.
 
 The hero command is `origit taint <package|file|sha256>`. It walks all records, matches
 `read[]` and `added_deps[]`, and returns in seconds: affected commits, sessions, files

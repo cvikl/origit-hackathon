@@ -1,0 +1,33 @@
+{% import "_icons.html" as ic %}
+{# one push = one review unit. p = card from _push_cards: id, at, source, rows, agg, bob, flagged #}
+<section class="card pushcard" id="push-{{ p.id }}">
+  <div class="pushcard-head">
+    <div>
+      <h3>{{ ic.icon('upload') }} Push {{ p.at | ts }}</h3>
+      <p class="muted small" style="margin:4px 0 0">{{ p.rows | length }} commit{{ 's' if p.rows | length != 1 }}{% if p.agg.n_records %} · {{ p.agg.n_records }} with a record{% endif %}{% if p.agg.sessions %} · sessions {% for s in p.agg.sessions %}<span class="mono">{{ s }}</span>{{ ' ' if not loop.last }}{% endfor %}{% endif %} · {{ p.source }}</p>
+    </div>
+    <div class="btnrow" style="margin:0">
+      {% if p.agg.n_records == 0 %}<span class="tag">no records</span>
+      {% elif p.agg.max_severity %}<span class="tag sev-{{ p.agg.max_severity }}"><i class="dot"></i>{{ p.agg.n_findings }} finding{{ 's' if p.agg.n_findings != 1 }} · {{ p.agg.max_severity }}</span>
+      {% elif p.agg.pending %}<span class="tag">Bob review pending</span>
+      {% else %}<span class="tag tag-ok"><i class="dot"></i>checked clean</span>{% endif %}
+      {% if p.bob %}<span class="tag tag-ink">{{ 'IBM Bob' if p.bob.source != 'seed' else 'IBM Bob, seeded' }}</span>{% endif %}
+    </div>
+  </div>
+  {% if p.bob and p.bob.summary %}<p class="pushcard-summary">{{ p.bob.summary }}</p>
+    {% if p.bob.first_action %}<p class="small"><strong>First action:</strong> {{ p.bob.first_action }}</p>{% endif %}
+  {% elif p.agg.n_records %}<p class="muted small">{{ 'Bob has reviewed the runs; the push summary is being written.' if not p.agg.pending else 'Pre-filter done on arrival; Bob is reviewing the runs in this push.' }}</p>{% endif %}
+  {% if p.agg.findings %}
+  <ul class="findings findings-plain">{% for f in p.agg.findings %}<li>
+    <div class="finding-head"><span class="tag sev-{{ f.severity }}"><i class="dot"></i>{{ f.severity }}</span><strong>{{ f.name }}</strong><span class="muted mono small">{{ f.asi }}{% if f.cwe %} · {{ f.cwe }}{% endif %}</span></div>
+    <div class="finding-body">{{ f.evidence }}</div>
+    <div class="muted small" style="margin-top:4px">in <a class="mono" href="/{{ repo.full_name }}/commit/{{ f.sha }}">{{ f.short }}</a>{% if f.session_label %} · session <span class="mono">{{ f.session_label }}</span>{% endif %} · {{ f.subject }}{% if f.rationale %} · <em>{{ f.rationale }}</em>{% endif %}</div>
+  </li>{% endfor %}</ul>
+  {% if p.agg.n_findings > p.agg.findings | length %}<p class="muted small">{{ p.agg.n_findings - p.agg.findings | length }} more on the commit pages.</p>{% endif %}
+  {% endif %}
+  {% if p.agg.n_records %}<p class="muted small pushcard-foot">
+    {% if p.agg.clean %}<span><strong>Checked clean:</strong> {% for a in p.agg.clean %}{{ CHECKS[a].name }}{{ ', ' if not loop.last }}{% endfor %}.</span>{% endif %}
+    {% if p.agg.na %}<span> <strong>Not relevant here:</strong> {% for a in p.agg.na %}{{ CHECKS[a].name }}{{ ', ' if not loop.last }}{% endfor %}.</span>{% endif %}
+  </p>{% endif %}
+  <details class="pushcard-commits"><summary>Commits in this push ({{ p.rows | length }})</summary><ul class="clist">{% for r in p.rows %}{% include "_row.html" %}{% endfor %}</ul></details>
+</section>

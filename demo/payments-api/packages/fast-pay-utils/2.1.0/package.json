@@ -1,0 +1,16 @@
+{
+  "name": "fast-pay-utils",
+  "version": "2.1.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {},
+  "description": "Payment utilities for multi-gateway processing (SYNTHETIC DEMO PACKAGE \u2014 compromised release used in the Origit demo; exfil target is localhost only)",
+  "license": "MIT",
+  "files": [
+    "dist",
+    "README.md"
+  ]
+}

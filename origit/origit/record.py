@@ -53,7 +53,7 @@ class Session:
 class Actor:
     """Who/what did the work."""
 
-    kind: str = ACTOR_HUMAN  # "bob-ide" | "human" | future: "claude-code", "cursor", ...
+    kind: str = ACTOR_HUMAN  # "bob-ide" | "human" | future: "cursor", "codex", ...
     model: str | None = None
     mode: str | None = None  # Bob custom mode slug, e.g. "origit-build"
     config_sha256: str | None = None  # hash of the rules/mode files in effect

@@ -1,0 +1,120 @@
+{
+ "push_id": "20260927T013820Z-d107c67",
+ "ran_at": "2026-09-27T02:22:12Z",
+ "source": "bob",
+ "reviewer": "IBM Bob (Bob Shell `bob run`, ask mode)",
+ "stats": {
+  "task_id": "50706c35fcfd5debcc92f416df9770e0",
+  "duration_ms": 23613,
+  "session_costs": 0.029786,
+  "max_cost": 0.3,
+  "tool_calls": 1
+ },
+ "elapsed_s": 25.7,
+ "summary": "This push bundles two human infrastructure commits that rewire the agent's own operating environment — adding a new hook script, a custom mode with execute permissions, a new MCP server registration, and relaxed safety settings in .bob/settings.json — alongside two agent-authored commits (#49, #48) that read payment source files and wrote PAN-handling and settlement code, including a test fixture containing a hardcoded card number. The infrastructure changes (f896e67) are the highest-risk surface: they alter how every future agent session boots, what commands it may run, and which tools are pre-approved, while simultaneously removing a PreToolUse guard and extending the stop timeout. The agent commits introduce executed shell heredocs for file writes, a local file-path dependency, and a plaintext test PAN committed to source.",
+ "first_action": "Audit f896e67 in full — specifically the new hook script, the custom mode's execute-group grant, the MCP server's alwaysAllow list, and every line deleted from .bob/settings.json — before any other commit in this push is accepted, because these changes govern the trust boundary for all subsequent agent runs.",
+ "verdicts": [
+  {
+   "asi": "ASI01",
+   "title": "Agent Goal Hijack",
+   "status": "finding",
+   "severity": "medium",
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "f896e67 contains nine separate hidden-instruction signals: agent config files (.bob/custom_modes.yaml, hooks, settings) were all changed in one commit, any of which could embed steering directives invisible to casual review."
+  },
+  {
+   "asi": "ASI02",
+   "title": "Tool Misuse and Exploitation",
+   "status": "finding",
+   "severity": "medium",
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "f896e67 adds a custom mode with an 'execute' permission group and a new hook script that resolves and calls an external binary; 36c384b (#49) and b4edd9c (#48) each used cat-heredoc shell commands to write source files directly to disk."
+  },
+  {
+   "asi": "ASI03",
+   "title": "Identity and Privilege Abuse",
+   "status": "finding",
+   "severity": "low",
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "b4edd9c (#48) committed a hardcoded Luhn-valid Visa test PAN ('4111111111111111') in settlement.test.ts, which now lives in source history as a sensitive data exposure."
+  },
+  {
+   "asi": "ASI04",
+   "title": "Agentic Supply Chain Vulnerabilities",
+   "status": "finding",
+   "severity": "low",
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "b4edd9c (#48) reads a dependency resolved from a local file path ('fast-pay-utils': 'file:packages/…') rather than a registry, and f896e67 registers a new MCP server from a local virtualenv path, both bypassing supply-chain controls; d107c67 adds an external GitHub URL to docs."
+  },
+  {
+   "asi": "ASI05",
+   "title": "Unexpected Code Execution (RCE)",
+   "status": "finding",
+   "severity": "medium",
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "f896e67 adds a hook script that executes a binary looked up via git-config and PATH at runtime; 36c384b (#49) and b4edd9c (#48) both executed shell commands during the agent run (flagged informational by prefilter but confirmed executed)."
+  },
+  {
+   "asi": "ASI06",
+   "title": "Memory and Context Poisoning",
+   "status": "finding",
+   "severity": "high",
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "f896e67 modifies .bob/custom_modes.yaml, .bob/hooks/origit-hook.sh (new), .bob/mcp.json (new), and .bob/settings.json in a single commit — a broad config-change footprint with no tests run and no prior session label."
+  },
+  {
+   "asi": "ASI07",
+   "title": "Insecure Inter-Agent Communication",
+   "status": "finding",
+   "severity": "low",
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "f896e67 registers the new MCP origit server with 'alwaysAllow' covering origit_taint, origit_show, and origit_log, meaning those tool calls will never prompt the user for approval."
+  },
+  {
+   "asi": "ASI08",
+   "title": "Cascading Failures",
+   "status": "not-applicable",
+   "severity": null,
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "No multi-agent delegation or inter-agent trust boundaries were recorded in any commit in this push."
+  },
+  {
+   "asi": "ASI09",
+   "title": "Human-Agent Trust Exploitation",
+   "status": "finding",
+   "severity": "medium",
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "6d4d325 resets session numbering to #42 without running tests, potentially making the session trail misleading; f896e67's roleDefinition for the origit-review mode asserts read-only behaviour that its own execute-group grant contradicts."
+  },
+  {
+   "asi": "ASI10",
+   "title": "Rogue Agents",
+   "status": "finding",
+   "severity": "medium",
+   "cwe": null,
+   "evidence": "",
+   "rationale": "",
+   "note": "f896e67 removes the PreToolUse hook from .bob/settings.json and raises the stop timeout from 90 to 120 seconds, weakening the enforcement guardrails that govern all future agent sessions; 6d4d325 also modifies .origit/config.json without tests."
+  }
+ ],
+ "raw": "```json\n{\n  \"summary\": \"This push bundles two human infrastructure commits that rewire the agent's own operating environment — adding a new hook script, a custom mode with execute permissions, a new MCP server registration, and relaxed safety settings in .bob/settings.json — alongside two agent-authored commits (#49, #48) that read payment source files and wrote PAN-handling and settlement code, including a test fixture containing a hardcoded card number. The infrastructure changes (f896e67) are the highest-risk surface: they alter how every future agent session boots, what commands it may run, and which tools are pre-approved, while simultaneously removing a PreToolUse guard and extending the stop timeout. The agent commits introduce executed shell heredocs for file writes, a local file-path dependency, and a plaintext test PAN committed to source.\",\n  \"first_action\": \"Audit f896e67 in full — specifically the new hook script, the custom mode's execute-group grant, the MCP server's alwaysAllow list, and every line deleted from .bob/settings.json — before any other commit in this push is accepted, because these changes govern the trust boundary for all subsequent agent runs.\",\n  \"verdicts\": [\n    {\n      \"asi\": \"ASI01\",\n      \"status\": \"finding\",\n      \"severity\": \"medium\",\n      \"note\": \"f896e67 contains nine separate hidden-instruction signals: agent config files (.bob/custom_modes.yaml, hooks, settings) were all changed in one commit, any of which could embed steering directives invisible to casual review.\"\n    },\n    {\n      \"asi\": \"ASI02\",\n      \"status\": \"finding\",\n      \"severity\": \"medium\",\n      \"note\": \"f896e67 adds a custom mode with an 'execute' permission group and a new hook script that resolves and calls an external binary; 36c384b (#49) and b4edd9c (#48) each used cat-heredoc shell commands to write source files directly to disk.\"\n    },\n    {\n      \"asi\": \"ASI03\",\n      \"status\": \"finding\",\n      \"severity\": \"low\",\n      \"note\": \"b4edd9c (#48) committed a hardcoded Luhn-valid Visa test PAN ('4111111111111111') in settlement.test.ts, which now lives in source history as a sensitive data exposure.\"\n    },\n    {\n      \"asi\": \"ASI04\",\n      \"status\": \"finding\",\n      \"severity\": \"low\",\n      \"note\": \"b4edd9c (#48) reads a dependency resolved from a local file path ('fast-pay-utils': 'file:packages/…') rather than a registry, and f896e67 registers a new MCP server from a local virtualenv path, both bypassing supply-chain controls; d107c67 adds an external GitHub URL to docs.\"\n    },\n    {\n      \"asi\": \"ASI05\",\n      \"status\": \"finding\",\n      \"severity\": \"medium\",\n      \"note\": \"f896e67 adds a hook script that executes a binary looked up via git-config and PATH at runtime; 36c384b (#49) and b4edd9c (#48) both executed shell commands during the agent run (flagged informational by prefilter but confirmed executed).\"\n    },\n    {\n      \"asi\": \"ASI06\",\n      \"status\": \"finding\",\n      \"severity\": \"high\",\n      \"note\": \"f896e67 modifies .bob/custom_modes.yaml, .bob/hooks/origit-hook.sh (new), .bob/mcp.json (new), and .bob/settings.json in a single commit — a broad config-change footprint with no tests run and no prior session label.\"\n    },\n    {\n      \"asi\": \"ASI07\",\n      \"status\": \"finding\",\n      \"severity\": \"low\",\n      \"note\": \"f896e67 registers the new MCP origit server with 'alwaysAllow' covering origit_taint, origit_show, and origit_log, meaning those tool calls will never prompt the user for approval.\"\n    },\n    {\n      \"asi\": \"ASI08\",\n      \"status\": \"not-applicable\",\n      \"severity\": null,\n      \"note\": \"No multi-agent delegation or inter-agent trust boundaries were recorded in any commit in this push.\"\n    },\n    {\n      \"asi\": \"ASI09\",\n      \"status\": \"finding\",\n      \"severity\": \"medium\",\n      \"note\": \"6d4d325 resets session numbering to #42 without running tests, potentially making the session trail misleading; f896e67's roleDefinition for the origit-review mode asserts read-only behaviour that its own execute-group grant contradicts.\"\n    },\n    {\n      \"asi\": \"ASI10\",\n      \"status\": \"finding\",\n      \"severity\": \"medium\",\n      \"note\": \"f896e67 removes the PreToolUse hook from .bob/settings.json and raises the stop timeout from 90 to 120 seconds, weakening the enforcement guardrails that govern all future agent sessions; 6d4d325 also modifies .origit/config.json without tests.\"\n    }\n  ]\n}\n```",
+ "parsed_ok": true
+}

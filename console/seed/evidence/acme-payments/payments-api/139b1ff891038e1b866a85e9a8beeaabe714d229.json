@@ -1,0 +1,109 @@
+{
+ "sha": "139b1ff891038e1b866a85e9a8beeaabe714d229",
+ "ran_at": "2026-09-27T12:53:51Z",
+ "source": "bob",
+ "reviewer": "IBM Bob (Bob Shell `bob run`, ask mode)",
+ "stats": {
+  "task_id": "96469b7d7800aa3b17c4dcddcf2d04bc",
+  "duration_ms": 27977,
+  "session_costs": 0.061616000000000004,
+  "max_cost": 0.5,
+  "tool_calls": 6
+ },
+ "elapsed_s": 29.8,
+ "summary": "The actor (a human developer, not an AI agent) added a new Bob Stop hook script (.bob/hooks/origit-session-commit.sh) and registered it inside .bob/settings.json alongside reformatting the existing hook configuration. No files were read by an agent, no tests were run, and no dependencies were added. The primary exposure is modification of persistent agent configuration (ASI06), and the new hook script introduces a shell execution surface at every future agent session end (ASI05 informational).",
+ "categories": [
+  {
+   "asi": "ASI01",
+   "title": "Agent Goal Hijack",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json: \"read\": []  |  prefilter.json: \"hidden_text\": []",
+   "rationale": "The agent read no files during this session; prefilter reports no hidden Unicode-tag or zero-width text; there is nothing from which goal-hijack instructions could have been delivered."
+  },
+  {
+   "asi": "ASI02",
+   "title": "Tool Misuse and Exploitation",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json: \"commands\": []",
+   "rationale": "No tools or shell commands were executed by the agent during this session."
+  },
+  {
+   "asi": "ASI03",
+   "title": "Identity and Privilege Abuse",
+   "status": "not-applicable",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json: \"read\": []  |  record.json: \"wrote\": []",
+   "rationale": "No secret values, credential files, keys, or tokens appear in the diff or in any read/wrote record."
+  },
+  {
+   "asi": "ASI04",
+   "title": "Agentic Supply Chain Vulnerabilities",
+   "status": "checked-clean",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json: \"added_deps\": []",
+   "rationale": "No new packages, MCP servers, skills, or external dependencies were introduced by this commit."
+  },
+  {
+   "asi": "ASI05",
+   "title": "Unexpected Code Execution (RCE)",
+   "status": "finding",
+   "severity": "informational",
+   "cwe": "CWE-94",
+   "evidence": "diff.patch line 12: \"if [ -n \\\"$c\\\" ] && [ -x \\\"$c\\\" ]; then \\\"$c\\\" session-commit --root . 2>>.origit/hook-errors.log; exit 0; fi\"  |  diff.patch line 71-73: \"{ \\\"type\\\": \\\"command\\\", \\\"command\\\": \\\"sh .bob/hooks/origit-session-commit.sh\\\", \\\"timeout\\\": 90 }\"",
+   "rationale": "The new hook script resolves the origit binary through several fallback paths (environment variable $ORIGIT_BIN, git config, PATH, two hardcoded venv paths) and executes it; it is wired to run at every agent Stop event. This is a shell execution surface: if any of those resolution paths are tampered with (e.g. $ORIGIT_BIN set to a malicious binary, a PATH-hijack, or a compromised venv), arbitrary code will execute with the agent's privileges at session end. Severity is informational because no untrusted input currently controls the paths, but the surface is worth noting for future reviews."
+  },
+  {
+   "asi": "ASI06",
+   "title": "Memory and Context Poisoning",
+   "status": "finding",
+   "severity": "informational",
+   "cwe": "CWE-829",
+   "evidence": "prefilter.json: \"evidence\": \"agent configuration changed by human: .bob/hooks/origit-session-commit.sh\"  |  prefilter.json: \"evidence\": \"agent configuration changed by human: .bob/settings.json\"  |  diff.patch lines 1-80 (both files modified/created)",
+   "rationale": "Two persistent agent-configuration files were changed: a new Stop hook script was created and .bob/settings.json was updated to register it. Any future AI agent session will now automatically execute origit session-commit at stop time. Modification of .bob/ config directly shapes what the agent does in every subsequent session, which is the definition of context/memory poisoning risk even when the change is made by a legitimate human developer."
+  },
+  {
+   "asi": "ASI07",
+   "title": "Insecure Inter-Agent Communication",
+   "status": "not-applicable",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json: \"commands\": []  |  diff.patch: no MCP, subagent, or inter-agent communication constructs introduced",
+   "rationale": "This commit contains no inter-agent communication, MCP exchanges, or subagent invocations."
+  },
+  {
+   "asi": "ASI08",
+   "title": "Cascading Failures",
+   "status": "not-applicable",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json: no \"propagated\" field present; session id \"human:Timotej:2026-09-26T15:45:48Z\" shows a human-authored commit with a single-moment session",
+   "rationale": "There is no propagation chain from a prior compromised commit; the record carries no propagated-input markers."
+  },
+  {
+   "asi": "ASI09",
+   "title": "Human-Agent Trust Exploitation",
+   "status": "not-applicable",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json: \"kind\": \"human\"  |  record.json: \"model\": null",
+   "rationale": "The actor is recorded as a human (not an AI agent), so there is no agent-generated summary that could have misled the approver about the nature of the change."
+  },
+  {
+   "asi": "ASI10",
+   "title": "Rogue Agents",
+   "status": "not-applicable",
+   "severity": null,
+   "cwe": null,
+   "evidence": "record.json: \"kind\": \"human\"  |  record.json: \"wrote\": []",
+   "rationale": "The commit was made directly by a human actor; there is no agent mandate or mode-scope to have exceeded."
+  }
+ ],
+ "raw": "No `reads/` directory exists. The `record.json` confirms `\"read\": []` and `\"hidden_text\": []` in `prefilter.json`. I have all the inputs needed to produce the analysis.\n\n```json\n{\n  \"summary\": \"The actor (a human developer, not an AI agent) added a new Bob Stop hook script (.bob/hooks/origit-session-commit.sh) and registered it inside .bob/settings.json alongside reformatting the existing hook configuration. No files were read by an agent, no tests were run, and no dependencies were added. The primary exposure is modification of persistent agent configuration (ASI06), and the new hook script introduces a shell execution surface at every future agent session end (ASI05 informational).\",\n  \"categories\": [\n    {\n      \"asi\": \"ASI01\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json: \\\"read\\\": []  |  prefilter.json: \\\"hidden_text\\\": []\",\n      \"rationale\": \"The agent read no files during this session; prefilter reports no hidden Unicode-tag or zero-width text; there is nothing from which goal-hijack instructions could have been delivered.\"\n    },\n    {\n      \"asi\": \"ASI02\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json: \\\"commands\\\": []\",\n      \"rationale\": \"No tools or shell commands were executed by the agent during this session.\"\n    },\n    {\n      \"asi\": \"ASI03\",\n      \"status\": \"not-applicable\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json: \\\"read\\\": []  |  record.json: \\\"wrote\\\": []\",\n      \"rationale\": \"No secret values, credential files, keys, or tokens appear in the diff or in any read/wrote record.\"\n    },\n    {\n      \"asi\": \"ASI04\",\n      \"status\": \"checked-clean\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json: \\\"added_deps\\\": []\",\n      \"rationale\": \"No new packages, MCP servers, skills, or external dependencies were introduced by this commit.\"\n    },\n    {\n      \"asi\": \"ASI05\",\n      \"status\": \"finding\",\n      \"severity\": \"informational\",\n      \"cwe\": \"CWE-94\",\n      \"evidence\": \"diff.patch line 12: \\\"if [ -n \\\\\\\"$c\\\\\\\" ] && [ -x \\\\\\\"$c\\\\\\\" ]; then \\\\\\\"$c\\\\\\\" session-commit --root . 2>>.origit/hook-errors.log; exit 0; fi\\\"  |  diff.patch line 71-73: \\\"{ \\\\\\\"type\\\\\\\": \\\\\\\"command\\\\\\\", \\\\\\\"command\\\\\\\": \\\\\\\"sh .bob/hooks/origit-session-commit.sh\\\\\\\", \\\\\\\"timeout\\\\\\\": 90 }\\\"\",\n      \"rationale\": \"The new hook script resolves the origit binary through several fallback paths (environment variable $ORIGIT_BIN, git config, PATH, two hardcoded venv paths) and executes it; it is wired to run at every agent Stop event. This is a shell execution surface: if any of those resolution paths are tampered with (e.g. $ORIGIT_BIN set to a malicious binary, a PATH-hijack, or a compromised venv), arbitrary code will execute with the agent's privileges at session end. Severity is informational because no untrusted input currently controls the paths, but the surface is worth noting for future reviews.\"\n    },\n    {\n      \"asi\": \"ASI06\",\n      \"status\": \"finding\",\n      \"severity\": \"informational\",\n      \"cwe\": \"CWE-829\",\n      \"evidence\": \"prefilter.json: \\\"evidence\\\": \\\"agent configuration changed by human: .bob/hooks/origit-session-commit.sh\\\"  |  prefilter.json: \\\"evidence\\\": \\\"agent configuration changed by human: .bob/settings.json\\\"  |  diff.patch lines 1-80 (both files modified/created)\",\n      \"rationale\": \"Two persistent agent-configuration files were changed: a new Stop hook script was created and .bob/settings.json was updated to register it. Any future AI agent session will now automatically execute origit session-commit at stop time. Modification of .bob/ config directly shapes what the agent does in every subsequent session, which is the definition of context/memory poisoning risk even when the change is made by a legitimate human developer.\"\n    },\n    {\n      \"asi\": \"ASI07\",\n      \"status\": \"not-applicable\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json: \\\"commands\\\": []  |  diff.patch: no MCP, subagent, or inter-agent communication constructs introduced\",\n      \"rationale\": \"This commit contains no inter-agent communication, MCP exchanges, or subagent invocations.\"\n    },\n    {\n      \"asi\": \"ASI08\",\n      \"status\": \"not-applicable\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json: no \\\"propagated\\\" field present; session id \\\"human:Timotej:2026-09-26T15:45:48Z\\\" shows a human-authored commit with a single-moment session\",\n      \"rationale\": \"There is no propagation chain from a prior compromised commit; the record carries no propagated-input markers.\"\n    },\n    {\n      \"asi\": \"ASI09\",\n      \"status\": \"not-applicable\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json: \\\"kind\\\": \\\"human\\\"  |  record.json: \\\"model\\\": null\",\n      \"rationale\": \"The actor is recorded as a human (not an AI agent), so there is no agent-generated summary that could have misled the approver about the nature of the change.\"\n    },\n    {\n      \"asi\": \"ASI10\",\n      \"status\": \"not-applicable\",\n      \"severity\": null,\n      \"cwe\": null,\n      \"evidence\": \"record.json: \\\"kind\\\": \\\"human\\\"  |  record.json: \\\"wrote\\\": []\",\n      \"rationale\": \"The commit was made directly by a human actor; there is no agent mandate or mode-scope to have exceeded.\"\n    }\n  ]\n}\n```",
+ "parsed_ok": true
+}
