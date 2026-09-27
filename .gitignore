@@ -38,3 +38,5 @@ console/**/dist/
 # bob runner scratch
 bob_sessions/*.raw
 bob_sessions/*.err
+.origit/session.json
+.origit/runs/
